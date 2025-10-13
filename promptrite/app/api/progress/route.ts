@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import { Progress } from "@/app/db/schema";
+import { Progress } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       .values({
         user_id: user.id,
         challenge_id,
+        prompt: "", // Default empty prompt for progress tracking
         score,
         metadata: metadata || null,
       })

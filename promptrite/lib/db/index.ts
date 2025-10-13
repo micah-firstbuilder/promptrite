@@ -22,6 +22,7 @@ export const {
   Users,
   Progress,
   BaselineMetrics,
+  baselineMetrics,
   users,
   challenges,
   submissions,

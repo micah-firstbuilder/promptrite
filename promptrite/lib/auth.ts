@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { Users } from "../app/db/schema";
+import { Users } from "./db";
 import { db } from "./db";
 
 export async function getCurrentUser() {

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { Progress } from "@/app/db/schema";
+import { Progress } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 

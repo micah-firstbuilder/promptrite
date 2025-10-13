@@ -198,8 +198,11 @@ export default function ChallengePage() {
         sub: "Visible case passed. Hidden case evaluated server‑side.",
       });
       setTimeout(() => {
+        const userName = encodeURIComponent("Alex Rivera");
+        const userElo = encodeURIComponent("1824");
+        const userAvatar = encodeURIComponent("https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=120&auto=format&fit=crop");
         router.push(
-          "/dashboard/challenge-completed?name=Alex Rivera&elo=1824&avatar=https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=120&auto=format&fit=crop"
+          `/dashboard/challenge-completed/${userName}/${userElo}/${userAvatar}`
         );
       }, 1500);
     } else {

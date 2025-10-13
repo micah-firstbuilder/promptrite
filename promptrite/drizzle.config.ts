@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL)
 
 const config = {
   schema: "./lib/db/schema",
-  out: "./app/db/migrations",
+  out: "./lib/db/migrations",
   dialect: "postgresql",
   // drizzle-kit requires either a url or host/database; provide url from env
   dbCredentials: { url: process.env.DATABASE_URL },

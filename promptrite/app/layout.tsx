@@ -6,6 +6,8 @@ import type React from "react";
 import "./globals.css";
 import { Suspense } from "react";
 
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",

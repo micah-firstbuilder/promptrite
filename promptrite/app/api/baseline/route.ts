@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import { BaselineMetrics } from "@/app/db/schema";
+import { BaselineMetrics } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
