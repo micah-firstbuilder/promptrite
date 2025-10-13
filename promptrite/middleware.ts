@@ -1,3 +1,6 @@
+// middleware.ts
+export const runtime = "nodejs"; // 👈 Force Node.js runtime instead of Edge
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
