@@ -3,20 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Configure Edge Runtime compatibility
   serverExternalPackages: ['@clerk/nextjs'],
-  // Configure headers for Edge compatibility
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Edge-Runtime',
-            value: 'true',
-          },
-        ],
-      },
-    ];
-  },
+  // Removed explicit Edge headers to allow Next.js to handle runtime automatically
+  // This can help with SSR/SSG compatibility on Vercel
 };
 
 export default nextConfig;

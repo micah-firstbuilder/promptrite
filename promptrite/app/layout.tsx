@@ -1,10 +1,11 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
+// Re-enabling 'force-dynamic' to prevent static generation issues with Clerk
 export const dynamic = 'force-dynamic';
 
 const inter = Inter({
