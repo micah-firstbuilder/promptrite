@@ -2,7 +2,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import type React from "react";
 import "./globals.css";
 import { Suspense } from "react";
 
