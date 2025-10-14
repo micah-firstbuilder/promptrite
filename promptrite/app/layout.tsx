@@ -1,10 +1,10 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type React from "react";
 import "./globals.css";
 import { Suspense } from "react";
+import { Providers } from "./providers";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,12 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ClerkProvider>
+        <Providers>
           <Suspense fallback={<div>Loading...</div>}>
             {children}
             <Analytics />
           </Suspense>
-        </ClerkProvider>
+        </Providers>
       </body>
     </html>
   );
