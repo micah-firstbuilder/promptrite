@@ -26,9 +26,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log('RootLayout rendering, env CLERK_PUBLISHABLE_KEY:', !!process.env.CLERK_PUBLISHABLE_KEY ? 'present' : 'missing');
-  console.log('RootLayout children type:', typeof children);
-  
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
