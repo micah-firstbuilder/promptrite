@@ -31,114 +31,23 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { NavBar } from "@/components/ui/tubelight-navbar";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 antialiased selection:bg-black/10">
-      {/* NAV */}
-      <header className="relative z-20">
-        <nav className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            {/* Brand */}
-            <a className="group inline-flex items-center gap-2" href="#">
-              <Image
-                alt="AIPREP"
-                className="h-[75px] w-auto"
-                height={32}
-                src="/aipreplogo.png"
-                width={120}
-              />
-            </a>
-            {/* Desktop Nav */}
-            <div className="hidden items-center gap-2 md:flex">
-              <a
-                className="rounded-full border-background bg-background px-3 py-1.5 font-medium text-neutral-900 text-sm ring-1 ring-black/10 transition hover:bg-black/10"
-                href="#how"
-              >
-                How it works
-              </a>
-              <a
-                className="rounded-full bg-background px-3 py-1.5 font-medium text-neutral-600 text-sm ring-1 ring-black/10 transition hover:bg-black/10 hover:text-neutral-900"
-                href="#who"
-              >
-                Who it's for
-              </a>
-              <a
-                className="rounded-full bg-background px-3 py-1.5 font-medium text-neutral-600 text-sm ring-1 ring-black/10 transition hover:bg-black/10 hover:text-neutral-900"
-                href="#proof"
-              >
-                Social proof
-              </a>
-            </div>
-            {/* Actions */}
-            <div className="hidden items-center gap-3 md:flex">
-              <a
-                className="font-medium text-neutral-700 text-sm transition hover:text-neutral-900"
-                href="#"
-              >
-                Sign in
-              </a>
-              <a
-                className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 font-semibold text-sm text-white transition hover:bg-neutral-800"
-                href="#cta"
-              >
-                <Target className="h-4 w-4" />
-                Start free
-              </a>
-            </div>
-            {/* Mobile menu */}
-            <button
-              aria-label="Open menu"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-black/5 ring-1 ring-black/10 transition hover:bg-black/10 md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5 text-neutral-900" />
-              ) : (
-                <Menu className="h-5 w-5 text-neutral-900" />
-              )}
-            </button>
-          </div>
-          {mobileMenuOpen && (
-            <div className="mt-2 border-black/10 border-t pt-2 pb-3 md:hidden">
-              <div className="grid gap-2">
-                <a
-                  className="rounded-lg bg-black/5 px-3 py-2 font-medium text-neutral-900 text-sm ring-1 ring-black/10"
-                  href="#how"
-                >
-                  How it works
-                </a>
-                <a
-                  className="rounded-lg bg-black/5 px-3 py-2 font-medium text-neutral-700 text-sm ring-1 ring-black/10"
-                  href="#who"
-                >
-                  Who it's for
-                </a>
-                <a
-                  className="rounded-lg bg-black/5 px-3 py-2 font-medium text-neutral-700 text-sm ring-1 ring-black/10"
-                  href="#proof"
-                >
-                  Social proof
-                </a>
-                <div className="flex items-center justify-between gap-2 pt-2">
-                  <a className="font-medium text-neutral-700 text-sm" href="#">
-                    Sign in
-                  </a>
-                  <a
-                    className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 font-semibold text-sm text-white transition hover:bg-neutral-800"
-                    href="#cta"
-                  >
-                    <Target className="h-4 w-4" />
-                    Start free
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-        </nav>
-      </header>
+    <div className="min-h-screen bg-transparent text-neutral-900 antialiased selection:bg-black/10">
+      {/* NAV - replaced with shared NavBar component */}
+      <NavBar
+        items={[
+          { name: "How it works", url: "#how", icon: Compass },
+          { name: "Who it's for", url: "#who", icon: Users },
+          { name: "Social proof", url: "#proof", icon: Star },
+          { name: "Start free", url: "#cta", icon: Target },
+        ]}
+        className="sm:pt-4"
+      />
 
       {/* HERO with fullscreen video */}
       <section className="relative min-h-screen overflow-hidden">
