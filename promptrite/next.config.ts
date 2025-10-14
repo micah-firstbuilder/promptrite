@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@clerk/nextjs'],
   // Removed explicit Edge headers to allow Next.js to handle runtime automatically
   // This can help with SSR/SSG compatibility on Vercel
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
