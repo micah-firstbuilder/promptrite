@@ -46,7 +46,7 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
   }, [numericId]);
 
   async function postExample(text: string, parentId?: number | null): Promise<ExampleItem | null> {
-    if (!optIn && parentId == null) return;
+    if (!optIn && parentId == null) return null;
     const trimmed = text.trim();
     if (trimmed.length < 10) {
       toast.error("Please enter at least 10 characters.");

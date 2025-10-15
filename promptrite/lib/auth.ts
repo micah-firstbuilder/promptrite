@@ -20,7 +20,7 @@ export async function getCurrentUser() {
 
   if (dbUser.length === 0) {
     // Fallback bootstrap: fetch from Clerk and upsert once (in case webhook lagged)
-    const user = await clerkClient.users.getUser(userId);
+    const user = await (await clerkClient()).users.getUser(userId);
     const primaryEmail = user.emailAddresses.find(
       (e) => e.id === user.primaryEmailAddressId,
     )?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
@@ -72,7 +72,7 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
     .limit(1);
 
   if (dbUser.length === 0) {
-    const user = await clerkClient.users.getUser(userId);
+    const user = await (await clerkClient()).users.getUser(userId);
     const primaryEmail =
       user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
         ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
