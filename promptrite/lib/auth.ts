@@ -1,8 +1,7 @@
 import { auth, clerkClient, getAuth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { Users } from "./db";
-import { db } from "./db";
 import type { NextRequest } from "next/server";
+import { db, Users } from "./db";
 
 export async function getCurrentUser() {
   const { userId } = await auth();
@@ -21,9 +20,11 @@ export async function getCurrentUser() {
   if (dbUser.length === 0) {
     // Fallback bootstrap: fetch from Clerk and upsert once (in case webhook lagged)
     const user = await (await clerkClient()).users.getUser(userId);
-    const primaryEmail = user.emailAddresses.find(
-      (e) => e.id === user.primaryEmailAddressId,
-    )?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+    const primaryEmail =
+      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
+        ?.emailAddress ??
+      user.emailAddresses[0]?.emailAddress ??
+      "";
 
     await db
       .insert(Users)
@@ -75,7 +76,9 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
     const user = await (await clerkClient()).users.getUser(userId);
     const primaryEmail =
       user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
-        ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+        ?.emailAddress ??
+      user.emailAddresses[0]?.emailAddress ??
+      "";
 
     await db
       .insert(Users)
@@ -96,11 +99,7 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
         },
       });
 
-    dbUser = await db
-      .select()
-      .from(Users)
-      .where(eq(Users.id, userId))
-      .limit(1);
+    dbUser = await db.select().from(Users).where(eq(Users.id, userId)).limit(1);
   }
 
   return {

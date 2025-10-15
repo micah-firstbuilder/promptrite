@@ -1,0 +1,23 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running precommit checks..."
+
+# Change to the promptrite directory where the actual project is
+cd promptrite || exit 1
+
+# Run ultracite format (ignore exit code - don't fail on formatting issues)
+echo "📝 Formatting code with ultracite..."
+npx ultracite format || true
+echo "✓ Format step completed"
+
+# Run build - THIS IS THE CRITICAL CHECK
+echo "🏗️  Building project..."
+pnpm build
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed - commit rejected"
+  exit 1
+fi
+
+echo "✅ All checks passed!"
+exit 0

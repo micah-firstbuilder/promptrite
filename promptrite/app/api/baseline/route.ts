@@ -1,8 +1,7 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import { BaselineMetrics } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { BaselineMetrics, db } from "@/lib/db";
 
 export async function GET() {
   try {

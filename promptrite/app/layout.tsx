@@ -1,19 +1,15 @@
-
 import { Analytics } from "@vercel/analytics/next";
-import { Toaster } from "sonner";
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { Suspense } from "react";
-
-
 
 import { Providers } from "./providers";
 // remove second analytics
 
 // Re-enabling 'force-dynamic' to prevent static generation issues with Clerk
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const inter = Inter({
   subsets: ["latin"],

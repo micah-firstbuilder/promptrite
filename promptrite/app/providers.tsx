@@ -1,8 +1,7 @@
 "use client";
 
-
-import type { PropsWithChildren } from "react";
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
+import type { PropsWithChildren } from "react";
 import { useEffect } from "react";
 
 function DebugAuthState() {
@@ -10,7 +9,12 @@ function DebugAuthState() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
     // eslint-disable-next-line no-console
-    console.log("[providers] auth state", { isLoaded, isSignedIn, userId, sessionId });
+    console.log("[providers] auth state", {
+      isLoaded,
+      isSignedIn,
+      userId,
+      sessionId,
+    });
   }, [isLoaded, isSignedIn, userId, sessionId]);
   return null;
 }
@@ -27,8 +31,4 @@ export function Providers({ children }: PropsWithChildren) {
       {children}
     </ClerkProvider>
   );
-
-
 }
-
-

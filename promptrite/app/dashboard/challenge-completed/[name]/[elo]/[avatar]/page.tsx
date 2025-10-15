@@ -2,7 +2,7 @@
 
 import { CheckCircle, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +13,8 @@ function ChallengeCompletedContent() {
   // Decode URL parameters and provide defaults
   const userName = decodeURIComponent(params.name as string) || "Alex Rivera";
   const userElo = Number(decodeURIComponent(params.elo as string)) || 1824;
-  const userAvatar = decodeURIComponent(params.avatar as string) || 
+  const userAvatar =
+    decodeURIComponent(params.avatar as string) ||
     "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=120&auto=format&fit=crop";
 
   const [displayElo, setDisplayElo] = useState(0);

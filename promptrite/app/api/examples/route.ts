@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
 import { getAuth } from "@clerk/nextjs/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
   createExample,
   flagExample,
   getExamplesByChallengeId,
-  hasPassedChallenge,
 } from "@/lib/db/queries";
 
 const getSchema = z.object({
@@ -42,7 +40,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ examples: list });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json({ error: "Internal Server Error", message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error", message },
+      { status: 500 }
+    );
   }
 }
 
@@ -71,7 +72,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ id: created.id }, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    return NextResponse.json({ error: "Failed to create", message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create", message },
+      { status: 500 }
+    );
   }
 }
 
@@ -89,5 +93,3 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 }
-
-

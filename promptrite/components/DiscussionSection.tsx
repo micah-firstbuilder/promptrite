@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface DiscussionSectionProps {
   challengeId: string;
@@ -45,7 +44,10 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
     load();
   }, [numericId]);
 
-  async function postExample(text: string, parentId?: number | null): Promise<ExampleItem | null> {
+  async function postExample(
+    text: string,
+    parentId?: number | null
+  ): Promise<ExampleItem | null> {
     if (!optIn && parentId == null) return null;
     const trimmed = text.trim();
     if (trimmed.length < 10) {
@@ -56,7 +58,12 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
     const res = await fetch("/api/examples", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ challenge_id: numericId, content: trimmed, opt_in: true, parent_id: parentId ?? undefined }),
+      body: JSON.stringify({
+        challenge_id: numericId,
+        content: trimmed,
+        opt_in: true,
+        parent_id: parentId ?? undefined,
+      }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -113,13 +120,15 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
   const threads = buildThreads(examples);
 
   return (
-    <section className="h-[85vh] lg:h-full pb-0 min-h-0 rounded-xl border border-border bg-card overflow-hidden">
-      <div className="border-border border-b px-5 py-4 flex-none">
+    <section className="h-[85vh] min-h-0 overflow-hidden rounded-xl border border-border bg-card pb-0 lg:h-full">
+      <div className="flex-none border-border border-b px-5 py-4">
         <h2 className="font-semibold text-lg">Peer Examples</h2>
-        <p className="text-muted-foreground text-sm">Anonymized passing prompts and solutions</p>
+        <p className="text-muted-foreground text-sm">
+          Anonymized passing prompts and solutions
+        </p>
       </div>
 
-      <div className="space-y-5 p-5 pb-30 h-full min-h-0 overflow-y-auto">
+      <div className="h-full min-h-0 space-y-5 overflow-y-auto p-5 pb-30">
         {error && (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
             {error}
@@ -127,27 +136,29 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
         )}
 
         <div>
-          <label htmlFor="example-content" className="mb-2 block text-sm font-medium">
+          <label
+            className="mb-2 block font-medium text-sm"
+            htmlFor="example-content"
+          >
             Share your prompt/solution
           </label>
           <textarea
+            className="min-h-[100px] w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
             id="example-content"
-            className="w-full min-h-[100px] rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write the prompt or solution that helped you pass..."
+            value={content}
           />
           <div className="mt-3 flex items-center justify-between">
             <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
               <input
-                type="checkbox"
                 checked={optIn}
                 onChange={(e) => setOptIn(e.target.checked)}
+                type="checkbox"
               />
               <span>Share my content anonymously</span>
             </label>
             <Button
-              type="button"
               disabled={!optIn || submittingMain || !content.trim()}
               onClick={async () => {
                 try {
@@ -164,6 +175,7 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
                   setSubmittingMain(false);
                 }
               }}
+              type="button"
             >
               {submittingMain ? "Submitting..." : "Submit"}
             </Button>
@@ -180,13 +192,13 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
             <ul className="space-y-4">
               {threads.map((root) => (
                 <ThreadItem
-                  key={root.id}
                   item={root}
+                  key={root.id}
+                  onFlag={(id) => optimisticFlag(id)}
                   submit={async (text) => {
                     const ex = await postExample(text, root.id);
                     if (ex) setExamples((prev) => [...prev, ex]);
                   }}
-                  onFlag={(id) => optimisticFlag(id)}
                 />
               ))}
             </ul>
@@ -199,7 +211,15 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
 
 export default DiscussionSection;
 
-function ThreadItem({ item, submit, onFlag }: { item: ExampleItem & { replies?: ExampleItem[] }; submit: (text: string) => Promise<void>; onFlag: (id: number) => Promise<void>; }) {
+function ThreadItem({
+  item,
+  submit,
+  onFlag,
+}: {
+  item: ExampleItem & { replies?: ExampleItem[] };
+  submit: (text: string) => Promise<void>;
+  onFlag: (id: number) => Promise<void>;
+}) {
   const [reply, setReply] = useState("");
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -211,27 +231,47 @@ function ThreadItem({ item, submit, onFlag }: { item: ExampleItem & { replies?: 
     <li className="rounded-md border border-border p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">Anonymous • {new Date(item.created_at).toLocaleString()}</p>
+          <p className="text-muted-foreground text-xs">
+            Anonymous • {new Date(item.created_at).toLocaleString()}
+          </p>
           <p className="mt-1 whitespace-pre-wrap text-sm">{item.content}</p>
           <div className="mt-2 flex items-center gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(!open)}>
+            <Button
+              onClick={() => setOpen(!open)}
+              type="button"
+              variant="outline"
+            >
               {open ? "Cancel" : "Reply"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => onFlag(item.id)}>
+            <Button
+              onClick={() => onFlag(item.id)}
+              type="button"
+              variant="outline"
+            >
               Report
             </Button>
           </div>
           {open && (
             <div className="mt-2">
-              <label htmlFor={`reply-${item.id}`} className="sr-only">Reply</label>
-              <textarea id={`reply-${item.id}`} className="w-full rounded-md border border-border bg-background p-2 text-sm outline-none focus:ring-2 focus:ring-ring" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write a reply..." />
+              <label className="sr-only" htmlFor={`reply-${item.id}`}>
+                Reply
+              </label>
+              <textarea
+                className="w-full rounded-md border border-border bg-background p-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id={`reply-${item.id}`}
+                onChange={(e) => setReply(e.target.value)}
+                placeholder="Write a reply..."
+                value={reply}
+              />
               <div className="mt-2 text-right">
                 <Button
-                  type="button"
                   disabled={submittingReply}
                   onClick={async () => {
                     const text = reply.trim();
-                    if (text.length < 10) { toast.error("Please enter at least 10 characters."); return; }
+                    if (text.length < 10) {
+                      toast.error("Please enter at least 10 characters.");
+                      return;
+                    }
                     try {
                       setSubmittingReply(true);
                       await submit(text);
@@ -241,6 +281,7 @@ function ThreadItem({ item, submit, onFlag }: { item: ExampleItem & { replies?: 
                       setSubmittingReply(false);
                     }
                   }}
+                  type="button"
                 >
                   {submittingReply ? "Posting..." : "Post reply"}
                 </Button>
@@ -251,11 +292,22 @@ function ThreadItem({ item, submit, onFlag }: { item: ExampleItem & { replies?: 
             <div className="mt-3">
               <ul className="space-y-3 border-l pl-3">
                 {visible.map((r) => (
-                  <li key={r.id} className="rounded-md border border-border p-2">
-                    <p className="text-xs text-muted-foreground">Anonymous • {new Date(r.created_at).toLocaleString()}</p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm">{r.content}</p>
+                  <li
+                    className="rounded-md border border-border p-2"
+                    key={r.id}
+                  >
+                    <p className="text-muted-foreground text-xs">
+                      Anonymous • {new Date(r.created_at).toLocaleString()}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm">
+                      {r.content}
+                    </p>
                     <div className="mt-2">
-                      <Button type="button" variant="outline" onClick={() => onFlag(r.id)}>
+                      <Button
+                        onClick={() => onFlag(r.id)}
+                        type="button"
+                        variant="outline"
+                      >
                         Report
                       </Button>
                     </div>
@@ -264,14 +316,24 @@ function ThreadItem({ item, submit, onFlag }: { item: ExampleItem & { replies?: 
               </ul>
               {hiddenCount > 0 && (
                 <div className="mt-2">
-                  <Button type="button" variant="outline" onClick={() => setShowAll(!showAll)}>
-                    {showAll ? "Hide replies" : `Show ${hiddenCount} more repl${hiddenCount === 1 ? "y" : "ies"}`}
+                  <Button
+                    onClick={() => setShowAll(!showAll)}
+                    type="button"
+                    variant="outline"
+                  >
+                    {showAll
+                      ? "Hide replies"
+                      : `Show ${hiddenCount} more repl${hiddenCount === 1 ? "y" : "ies"}`}
                   </Button>
                 </div>
               )}
               {hiddenCount === 0 && replies.length > 2 && (
                 <div className="mt-2">
-                  <Button type="button" variant="outline" onClick={() => setShowAll(false)}>
+                  <Button
+                    onClick={() => setShowAll(false)}
+                    type="button"
+                    variant="outline"
+                  >
                     Collapse replies
                   </Button>
                 </div>
@@ -283,5 +345,3 @@ function ThreadItem({ item, submit, onFlag }: { item: ExampleItem & { replies?: 
     </li>
   );
 }
-
-
