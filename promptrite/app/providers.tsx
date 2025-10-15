@@ -1,5 +1,6 @@
 "use client";
 
+
 import type { PropsWithChildren } from "react";
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
@@ -26,6 +27,8 @@ export function Providers({ children }: PropsWithChildren) {
       {children}
     </ClerkProvider>
   );
+=======
+
 }
 
 

@@ -1,6 +1,8 @@
 "use client";
+
 import { SignUp, useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
+
 
 export default function Page() {
   const { isLoaded, isSignedIn, userId, sessionId } = useAuth();

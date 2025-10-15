@@ -32,11 +32,13 @@ import {
 import Image from "next/image";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useState } from "react";
+import { NavBar } from "@/components/ui/tubelight-navbar";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
+
     <div className="min-h-screen bg-white text-neutral-900 antialiased selection:bg-black/10">
       {/* NAV */}
       <header className="relative z-20">
@@ -158,6 +160,7 @@ export default function Home() {
           )}
         </nav>
       </header>
+
 
       {/* HERO with fullscreen video */}
       <section className="relative min-h-screen overflow-hidden">
