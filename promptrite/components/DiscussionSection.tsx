@@ -128,7 +128,7 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
 
   // Generate unique IDs for accordion values
   const generateAccordionId = (itemId: number) => `item-${itemId}`;
-  
+
   // Track opened discussion threads
   const [openDiscussions, setOpenDiscussions] = useState<string[]>([]);
 
@@ -204,11 +204,11 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
           ) : examples.length === 0 ? (
             <p className="text-muted-foreground text-sm">No examples yet.</p>
           ) : (
-            <Discussion 
-              type="multiple" 
+            <Discussion
               className="w-full"
-              value={openDiscussions}
               onValueChange={setOpenDiscussions}
+              type="multiple"
+              value={openDiscussions}
             >
               {threads.map((thread) => (
                 <ThreadItem
@@ -251,7 +251,7 @@ function ThreadItem({
       <DiscussionContent className="gap-2">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <DiscussionTitle className="flex gap-2 items-center">
+            <DiscussionTitle className="flex items-center gap-2">
               <div>Anonymous</div>
               <span className="text-muted-foreground text-xs">•</span>
               <div className="text-muted-foreground text-xs">
@@ -260,15 +260,15 @@ function ThreadItem({
             </DiscussionTitle>
             <DiscussionBody>{item.content}</DiscussionBody>
           </div>
-          <div className="flex gap-2 mt-2">
+          <div className="mt-2 flex gap-2">
             <Button
               onClick={(e) => {
                 e.stopPropagation();
                 setOpen(!open);
               }}
+              size="sm"
               type="button"
               variant="outline"
-              size="sm"
             >
               {open ? "Cancel" : "Reply"}
             </Button>
@@ -277,9 +277,9 @@ function ThreadItem({
                 e.stopPropagation();
                 onFlag(item.id);
               }}
+              size="sm"
               type="button"
               variant="outline"
-              size="sm"
             >
               Report
             </Button>
@@ -314,8 +314,8 @@ function ThreadItem({
                       setSubmittingReply(false);
                     }
                   }}
-                  type="button"
                   size="sm"
+                  type="button"
                 >
                   {submittingReply ? "Posting..." : "Post reply"}
                 </Button>
@@ -333,7 +333,7 @@ function ThreadItem({
               <DiscussionContent className="gap-2">
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-col gap-1">
-                    <DiscussionTitle className="flex gap-2 items-center">
+                    <DiscussionTitle className="flex items-center gap-2">
                       <div>Anonymous</div>
                       <span className="text-muted-foreground text-xs">•</span>
                       <div className="text-muted-foreground text-xs">
@@ -348,9 +348,9 @@ function ThreadItem({
                         e.stopPropagation();
                         onFlag(reply.id);
                       }}
+                      size="sm"
                       type="button"
                       variant="outline"
-                      size="sm"
                     >
                       Report
                     </Button>
