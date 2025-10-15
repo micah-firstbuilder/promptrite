@@ -27,7 +27,7 @@ export function Providers({ children }: PropsWithChildren) {
       {children}
     </ClerkProvider>
   );
-=======
+
 
 }
 
