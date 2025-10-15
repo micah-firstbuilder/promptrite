@@ -6,6 +6,7 @@ import type React from "react";
 import "./globals.css";
 import { Suspense } from "react";
 import { Providers } from "./providers";
+// remove second analytics
 
 export const dynamic = 'force-dynamic';
 
