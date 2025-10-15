@@ -7,7 +7,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 
-import { Analytics } from "@vercel/analytics/next";
+
 
 import { Providers } from "./providers";
 
