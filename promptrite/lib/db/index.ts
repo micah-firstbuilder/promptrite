@@ -26,4 +26,5 @@ export const {
   users,
   challenges,
   submissions,
+  examples,
 } = schema;

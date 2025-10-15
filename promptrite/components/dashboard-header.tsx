@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SignOutButton, useUser } from "@clerk/nextjs";
+
 import { Button } from "@/components/ui/button";
 
 interface DashboardHeaderProps {
@@ -18,6 +20,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ activeRoute }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isSignedIn, user } = useUser();
 
   const navItems = [
     {
@@ -82,12 +85,24 @@ export function DashboardHeader({ activeRoute }: DashboardHeaderProps) {
 
           {/* Right side - User menu */}
           <div className="flex items-center gap-4">
-            <Button className="hidden md:flex" size="icon-sm" variant="ghost">
-              <Avatar className="size-8">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback>MJ</AvatarFallback>
-              </Avatar>
-            </Button>
+            {isSignedIn ? (
+              <>
+                <Link className="hidden md:flex" href="/dashboard/profile">
+                  <Avatar className="size-8">
+                    <AvatarImage src="" />
+                    <AvatarFallback>
+                      {(user?.firstName?.[0] ?? "").toUpperCase()}
+                      {(user?.lastName?.[0] ?? "").toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+                <SignOutButton redirectUrl="/">
+                  <Button className="hidden md:inline-flex" size="sm" variant="ghost">Log out</Button>
+                </SignOutButton>
+              </>
+            ) : (
+              <Link className="hidden md:flex" href="/sign-in">Sign in</Link>
+            )}
 
             {/* Mobile menu button */}
             <Button
@@ -126,6 +141,13 @@ export function DashboardHeader({ activeRoute }: DashboardHeaderProps) {
                 </Link>
               );
             })}
+            {isSignedIn ? (
+              <SignOutButton redirectUrl="/">
+                <Button className="w-full justify-start rounded-md px-4 py-2 text-left text-sm" variant="ghost">Log out</Button>
+              </SignOutButton>
+            ) : (
+              <Link className="block rounded-md px-4 py-2 text-sm text-muted-foreground hover:bg-muted" href="/sign-in">Sign in</Link>
+            )}
           </nav>
         )}
       </div>

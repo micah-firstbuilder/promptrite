@@ -1,9 +1,16 @@
+
+import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
-import { Analytics } from "@vercel/analytics/next";
+
+
+
 import { Providers } from "./providers";
+// remove second analytics
 
 // Re-enabling 'force-dynamic' to prevent static generation issues with Clerk
 export const dynamic = 'force-dynamic';
@@ -33,6 +40,7 @@ export default function RootLayout({
           <Suspense fallback={<div>Loading...</div>}>
             {children}
             <Analytics />
+            <Toaster />
           </Suspense>
         </Providers>
       </body>

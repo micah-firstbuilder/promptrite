@@ -47,6 +47,10 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
+        // Trigger a lightweight server sync of Clerk → Neon user profile.
+        // The /api/user endpoint calls getCurrentUser which upserts if missing/stale.
+        await fetch("/api/user", { cache: "no-store" });
+
         const response = await fetch("/api/challenges");
         if (response.ok) {
           const data = await response.json();

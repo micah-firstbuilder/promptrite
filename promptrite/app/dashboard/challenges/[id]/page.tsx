@@ -16,11 +16,14 @@ import {
   Undo,
   User,
   XCircle,
+  ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import DiscussionSection from "@/components/DiscussionSection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Mock challenge data - in a real app, this would come from an API
 const challengeData: Record<string, any> = {
@@ -93,6 +96,8 @@ export default function ChallengePage() {
     submitted: false,
   });
   const [submittedAnswer, setSubmittedAnswer] = useState<number | null>(null);
+  const [testOpen, setTestOpen] = useState(true);
+  
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -283,10 +288,10 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Top Bar */}
-      <header className="border-border border-b">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <header className="border-border border-b flex-none">
+        <div className="mx-auto flex w-[95%] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Button
               className="size-9"
@@ -327,10 +332,10 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
       </header>
 
       {/* Main 1-1 Split */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <main className="mx-auto w-[95%] px-4 py-6 sm:px-6 lg:px-8 flex-1 overflow-y-auto lg:overflow-hidden">
+        <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left: Task Specifications */}
-          <section className="flex flex-col overflow-hidden rounded-xl border border-border">
+          <section className="flex h-[85vh] lg:h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border">
             {/* Title */}
             <div className="border-border border-b bg-card px-5 py-4 sm:px-6">
               <div className="flex items-center justify-between">
@@ -359,82 +364,78 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
               </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
-              <div>
-                <h2 className="font-semibold text-[20px] tracking-tight">
-                  Description
-                </h2>
-                <p className="mt-2 text-[15px] text-muted-foreground leading-6">
-                  {challenge.description}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-[18px] tracking-tight">
-                  Requirements
-                </h3>
-                <ul className="mt-3 space-y-2">
-                  {challenge.requirements.map((req: string, idx: number) => (
-                    <li className="flex items-start gap-3" key={idx}>
-                      <Check className="mt-0.5 size-4" />
-                      <span className="text-[15px]">{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-lg border border-border p-4">
-                  <p className="font-medium text-sm">Case 1 (visible)</p>
-                  <div className="mt-2 text-sm">
-                    <p>energy = [{challenge.visibleCase.energy.join(", ")}]</p>
-                    <p>k = {challenge.visibleCase.k}</p>
-                  </div>
-                  <p className="mt-3 text-muted-foreground text-sm">
-                    {challenge.visibleCase.description}
-                  </p>
+            {/* Tabs */}
+            <div className="flex min-h-0 flex-1 flex-col">
+              <Tabs defaultValue="description" className="flex min-h-0 flex-1 flex-col">
+                <div className="border-border border-b px-5 pt-2 sm:px-6">
+                  <TabsList>
+                    <TabsTrigger value="description">Description</TabsTrigger>
+                    <TabsTrigger value="examples">Peer examples</TabsTrigger>
+                  </TabsList>
                 </div>
-                <div className="rounded-lg border border-border p-4">
-                  <p className="font-medium text-sm">Case 2 (hidden)</p>
-                  <p className="mt-2 text-muted-foreground text-sm">
-                    {challenge.hiddenCase.description}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-[18px] tracking-tight">
-                  Examples
-                </h3>
-                {challenge.examples.map((example: any, idx: number) => (
-                  <div
-                    className="mt-3 rounded-lg border border-border"
-                    key={idx}
-                  >
-                    <div className="border-border border-b px-4 py-3 font-medium text-sm">
-                      {example.title}
+                <TabsContent value="description" className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="font-semibold text-[20px] tracking-tight">Description</h2>
+                      <p className="mt-2 text-[15px] text-muted-foreground leading-6">{challenge.description}</p>
                     </div>
-                    <div className="px-4 py-3 text-sm">{example.content}</div>
+                    <div>
+                      <h3 className="font-semibold text-[18px] tracking-tight">Requirements</h3>
+                      <ul className="mt-3 space-y-2">
+                        {challenge.requirements.map((req: string, idx: number) => (
+                          <li className="flex items-start gap-3" key={idx}>
+                            <Check className="mt-0.5 size-4" />
+                            <span className="text-[15px]">{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="font-medium text-sm">Case 1 (visible)</p>
+                        <div className="mt-2 text-sm">
+                          <p>energy = [{challenge.visibleCase.energy.join(", ")}]</p>
+                          <p>k = {challenge.visibleCase.k}</p>
+                        </div>
+                        <p className="mt-3 text-muted-foreground text-sm">{challenge.visibleCase.description}</p>
+                      </div>
+                      <div className="rounded-lg border border-border p-4">
+                        <p className="font-medium text-sm">Case 2 (hidden)</p>
+                        <p className="mt-2 text-muted-foreground text-sm">{challenge.hiddenCase.description}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[18px] tracking-tight">Examples</h3>
+                      {challenge.examples.map((example: any, idx: number) => (
+                        <div className="mt-3 rounded-lg border border-border" key={idx}>
+                          <div className="border-border border-b px-4 py-3 font-medium text-sm">{example.title}</div>
+                          <div className="px-4 py-3 text-sm">{example.content}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="pt-2">
+                      <div className="flex items-center gap-2">
+                        <Button onClick={handleCopySpec} size="sm" variant="outline">
+                          <Clipboard className="size-4" /> Copy spec
+                        </Button>
+                        <Button onClick={handleReset} size="sm" variant="outline">
+                          <Undo className="size-4" /> Reset chat
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="pt-2">
-                <div className="flex items-center gap-2">
-                  <Button onClick={handleCopySpec} size="sm" variant="outline">
-                    <Clipboard className="size-4" /> Copy spec
-                  </Button>
-                  <Button onClick={handleReset} size="sm" variant="outline">
-                    <Undo className="size-4" /> Reset chat
-                  </Button>
-                </div>
-              </div>
+                </TabsContent>
+                <TabsContent value="examples" className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                  <div className="h-full min-h-0">
+                    <DiscussionSection challengeId={challengeId} />
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </section>
 
           {/* Right: Chat + Validation */}
-          <section className="flex flex-col overflow-hidden rounded-xl border border-border">
+          <section className="flex h-[85vh] lg:h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border">
             {/* Status banner */}
             <div className="border-border border-b bg-card px-5 py-3 sm:px-6">
               <div className="flex items-center gap-2 text-sm">
@@ -514,90 +515,108 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
               </div>
             </div>
 
-            {/* Test results */}
-            <div className="border-border border-t bg-card px-5 py-4 sm:px-6">
-              <div className="flex items-center justify-between">
+            {/* Test results (collapsible) */}
+            <div className="border-border border-t bg-card">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between px-5 py-4 sm:px-6"
+                onClick={() => setTestOpen((v) => !v)}
+                aria-expanded={testOpen}
+                aria-controls="test-results-panel"
+              >
                 <div className="flex items-center gap-2">
                   <ListChecks className="size-4" />
                   <p className="font-medium text-sm">Test Result</p>
                 </div>
-                <div
-                  className={`rounded-full border px-2.5 py-1 text-xs ${
-                    testResult.passed
-                      ? "border-green-500/20 bg-green-500/10 text-green-700"
-                      : "border-border"
-                  }`}
-                >
-                  {testResult.passed ? "1" : "0"}/1 passed
-                </div>
-              </div>
-              <div className="mt-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="w-24 text-muted-foreground">Case 1</span>
-                  <span
-                    className={`rounded-md border px-2.5 py-1 ${
-                      testResult.submitted
-                        ? testResult.passed
-                          ? "border-green-500/20 bg-green-500/10 text-green-700"
-                          : "border-red-500/20 bg-red-500/10 text-red-700"
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`rounded-full border px-2.5 py-1 text-xs ${
+                      testResult.passed
+                        ? "border-green-500/20 bg-green-500/10 text-green-700"
                         : "border-border"
                     }`}
                   >
-                    {testResult.submitted
-                      ? testResult.passed
-                        ? "Passed"
-                        : "Failed"
-                      : "Waiting"}
-                  </span>
+                    {testResult.passed ? "1" : "0"}/1 passed
+                  </div>
+                  <ChevronDown
+                    className={`size-4 transition-transform ${testOpen ? "" : "-rotate-90"}`}
+                  />
                 </div>
-              </div>
-
-              {/* Submission Output */}
-              <div className="mt-4 border-border border-t pt-4">
-                <div className="flex items-center gap-2">
-                  <Monitor className="size-4" />
-                  <p className="font-medium text-sm">Submission Output</p>
-                  <span className="ml-2 rounded-full border border-border bg-muted px-2 py-0.5 text-xs">
-                    Auto
-                  </span>
-                </div>
-
-                <div className="mt-3">
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm">App Preview</p>
+              </button>
+              {testOpen && (
+                <div id="test-results-panel" className="px-5 py-4 sm:px-6 border-t border-border">
+                  <div className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-24 text-muted-foreground">Case 1</span>
                       <span
-                        className={`rounded-full border px-2.5 py-1 text-xs ${
+                        className={`rounded-md border px-2.5 py-1 ${
                           testResult.submitted
                             ? testResult.passed
                               ? "border-green-500/20 bg-green-500/10 text-green-700"
-                              : "border-amber-500/20 bg-amber-500/10 text-amber-700"
+                              : "border-red-500/20 bg-red-500/10 text-red-700"
                             : "border-border"
                         }`}
                       >
                         {testResult.submitted
                           ? testResult.passed
-                            ? "Success"
-                            : "Check"
-                          : "Idle"}
+                            ? "Passed"
+                            : "Failed"
+                          : "Waiting"}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Submission Output */}
+                  <div className="mt-4 border-border border-t pt-4">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="size-4" />
+                      <p className="font-medium text-sm">Submission Output</p>
+                      <span className="ml-2 rounded-full border border-border bg-muted px-2 py-0.5 text-xs">
+                        Auto
+                      </span>
+                    </div>
+
                     <div className="mt-3">
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-[22px] tracking-tight">
-                          {submittedAnswer !== null ? submittedAnswer : "—"}
-                        </span>
-                        <span className="text-muted-foreground text-sm">
-                          Computed answer
-                        </span>
+                      <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-sm">App Preview</p>
+                          <span
+                            className={`rounded-full border px-2.5 py-1 text-xs ${
+                              testResult.submitted
+                                ? testResult.passed
+                                  ? "border-green-500/20 bg-green-500/10 text-green-700"
+                                  : "border-amber-500/20 bg-amber-500/10 text-amber-700"
+                                : "border-border"
+                            }`}
+                          >
+                            {testResult.submitted
+                              ? testResult.passed
+                                ? "Success"
+                                : "Check"
+                              : "Idle"}
+                          </span>
+                        </div>
+                        <div className="mt-3">
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-semibold text-[22px] tracking-tight">
+                              {submittedAnswer !== null ? submittedAnswer : "—"}
+                            </span>
+                            <span className="text-muted-foreground text-sm">
+                              Computed answer
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
         </div>
+
+       
+        
       </main>
     </div>
   );
