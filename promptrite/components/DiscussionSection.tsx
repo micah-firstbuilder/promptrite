@@ -3,6 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Discussion,
+  DiscussionBody,
+  DiscussionContent,
+  DiscussionExpand,
+  DiscussionItem,
+  DiscussionReplies,
+  DiscussionTitle,
+} from "@/components/ui/discussion";
 
 interface DiscussionSectionProps {
   challengeId: string;
@@ -117,10 +126,16 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
     return roots;
   }
 
+  // Generate unique IDs for accordion values
+  const generateAccordionId = (itemId: number) => `item-${itemId}`;
+  
+  // Track opened discussion threads
+  const [openDiscussions, setOpenDiscussions] = useState<string[]>([]);
+
   const threads = buildThreads(examples);
 
   return (
-    <section className="h-[85vh] min-h-0 overflow-hidden rounded-xl border border-border bg-card pb-0 lg:h-full">
+    <section className="h-[85vh] min-h-0 overflow-hidden rounded-xl bg-card pb-0 lg:h-full">
       <div className="flex-none border-border border-b px-5 py-4">
         <h2 className="font-semibold text-lg">Peer Examples</h2>
         <p className="text-muted-foreground text-sm">
@@ -189,19 +204,24 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
           ) : examples.length === 0 ? (
             <p className="text-muted-foreground text-sm">No examples yet.</p>
           ) : (
-            <ul className="space-y-4">
-              {threads.map((root) => (
+            <Discussion 
+              type="multiple" 
+              className="w-full"
+              value={openDiscussions}
+              onValueChange={setOpenDiscussions}
+            >
+              {threads.map((thread) => (
                 <ThreadItem
-                  item={root}
-                  key={root.id}
+                  item={thread}
+                  key={thread.id}
                   onFlag={(id) => optimisticFlag(id)}
                   submit={async (text) => {
-                    const ex = await postExample(text, root.id);
+                    const ex = await postExample(text, thread.id);
                     if (ex) setExamples((prev) => [...prev, ex]);
                   }}
                 />
               ))}
-            </ul>
+            </Discussion>
           )}
         </div>
       </div>
@@ -222,37 +242,50 @@ function ThreadItem({
 }) {
   const [reply, setReply] = useState("");
   const [open, setOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const [submittingReply, setSubmittingReply] = useState(false);
   const replies = item.replies ?? [];
-  const visible = showAll ? replies : replies.slice(0, 2);
-  const hiddenCount = Math.max(0, replies.length - visible.length);
+  const itemId = `item-${item.id}`;
+
   return (
-    <li className="rounded-md border border-border p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-muted-foreground text-xs">
-            Anonymous • {new Date(item.created_at).toLocaleString()}
-          </p>
-          <p className="mt-1 whitespace-pre-wrap text-sm">{item.content}</p>
-          <div className="mt-2 flex items-center gap-2">
+    <DiscussionItem value={itemId}>
+      <DiscussionContent className="gap-2">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <DiscussionTitle className="flex gap-2 items-center">
+              <div>Anonymous</div>
+              <span className="text-muted-foreground text-xs">•</span>
+              <div className="text-muted-foreground text-xs">
+                {new Date(item.created_at).toLocaleString()}
+              </div>
+            </DiscussionTitle>
+            <DiscussionBody>{item.content}</DiscussionBody>
+          </div>
+          <div className="flex gap-2 mt-2">
             <Button
-              onClick={() => setOpen(!open)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(!open);
+              }}
               type="button"
               variant="outline"
+              size="sm"
             >
               {open ? "Cancel" : "Reply"}
             </Button>
             <Button
-              onClick={() => onFlag(item.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onFlag(item.id);
+              }}
               type="button"
               variant="outline"
+              size="sm"
             >
               Report
             </Button>
           </div>
           {open && (
-            <div className="mt-2">
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
               <label className="sr-only" htmlFor={`reply-${item.id}`}>
                 Reply
               </label>
@@ -282,66 +315,52 @@ function ThreadItem({
                     }
                   }}
                   type="button"
+                  size="sm"
                 >
                   {submittingReply ? "Posting..." : "Post reply"}
                 </Button>
               </div>
             </div>
           )}
-          {replies.length > 0 && (
-            <div className="mt-3">
-              <ul className="space-y-3 border-l pl-3">
-                {visible.map((r) => (
-                  <li
-                    className="rounded-md border border-border p-2"
-                    key={r.id}
-                  >
-                    <p className="text-muted-foreground text-xs">
-                      Anonymous • {new Date(r.created_at).toLocaleString()}
-                    </p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm">
-                      {r.content}
-                    </p>
-                    <div className="mt-2">
-                      <Button
-                        onClick={() => onFlag(r.id)}
-                        type="button"
-                        variant="outline"
-                      >
-                        Report
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {hiddenCount > 0 && (
-                <div className="mt-2">
-                  <Button
-                    onClick={() => setShowAll(!showAll)}
-                    type="button"
-                    variant="outline"
-                  >
-                    {showAll
-                      ? "Hide replies"
-                      : `Show ${hiddenCount} more repl${hiddenCount === 1 ? "y" : "ies"}`}
-                  </Button>
-                </div>
-              )}
-              {hiddenCount === 0 && replies.length > 2 && (
-                <div className="mt-2">
-                  <Button
-                    onClick={() => setShowAll(false)}
-                    type="button"
-                    variant="outline"
-                  >
-                    Collapse replies
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+          {replies.length > 0 && <DiscussionExpand />}
         </div>
-      </div>
-    </li>
+      </DiscussionContent>
+
+      {replies.length > 0 && (
+        <DiscussionReplies>
+          {replies.map((reply) => (
+            <DiscussionItem key={reply.id} value={`item-${reply.id}`}>
+              <DiscussionContent className="gap-2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-1">
+                    <DiscussionTitle className="flex gap-2 items-center">
+                      <div>Anonymous</div>
+                      <span className="text-muted-foreground text-xs">•</span>
+                      <div className="text-muted-foreground text-xs">
+                        {new Date(reply.created_at).toLocaleString()}
+                      </div>
+                    </DiscussionTitle>
+                    <DiscussionBody>{reply.content}</DiscussionBody>
+                  </div>
+                  <div className="mt-2">
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onFlag(reply.id);
+                      }}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                    >
+                      Report
+                    </Button>
+                  </div>
+                </div>
+              </DiscussionContent>
+            </DiscussionItem>
+          ))}
+        </DiscussionReplies>
+      )}
+    </DiscussionItem>
   );
 }

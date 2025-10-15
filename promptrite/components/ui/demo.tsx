@@ -1,13 +1,125 @@
-import { Briefcase, FileText, Home, User } from "lucide-react";
-import { NavBar } from "@/components/ui/tubelight-navbar";
+import {
+  Discussion,
+  DiscussionBody,
+  DiscussionContent,
+  DiscussionExpand,
+  DiscussionItem,
+  DiscussionReplies,
+  DiscussionTitle,
+} from "@/components/ui/discussion"
 
-export function NavBarDemo() {
-  const navItems = [
-    { name: "Home", url: "#", icon: Home },
-    { name: "About", url: "#", icon: User },
-    { name: "Projects", url: "#", icon: Briefcase },
-    { name: "Resume", url: "#", icon: FileText },
-  ];
+export default function DiscussionDemo() {
+  return (
+    <div className="w-3/4">
+      
+        <Discussion
+          defaultValue={["item-1"]}
+          type="multiple"
+          className="w-full"
+        >
+          <DiscussionItem value="item-1">
+            <DiscussionContent className="gap-2">
+             
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <DiscussionTitle className="flex gap-2 items-center">
+                    <div>Jane Smith</div>
+                    <div className="text-muted-foreground text-xs ">
+                      @janesmith
+                    </div>
+                    <span className="text-muted-foreground text-xs">•</span>
+                    <div className="text-muted-foreground text-xs ">
+                      1 hour ago
+                    </div>
+                  </DiscussionTitle>
+                  <DiscussionBody>
+                    This is a great article! Thanks for sharing your insights. I
+                    particularly enjoyed the section about accessibility best
+                    practices.
+                  </DiscussionBody>
+                </div>
+                <DiscussionExpand />
+              </div>
+            </DiscussionContent>
+            <DiscussionReplies>
+              <DiscussionItem value="item-1.1">
+                <DiscussionContent className="gap-2">
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
+                      <DiscussionTitle className="flex gap-2 items-center">
+                        <div>Liam Patel</div>
+                        <div className="text-muted-foreground text-xs ">
+                          @liampatel
+                        </div>
+                        <span className="text-muted-foreground text-xs">•</span>
+                        <div className="text-muted-foreground text-xs ">
+                          34 minutes ago
+                        </div>
+                      </DiscussionTitle>
+                      <DiscussionBody>
+                        I agree! The examples were particularly helpful. Do you
+                        have any recommendations for further reading?
+                      </DiscussionBody>
+                    </div>
+                    <DiscussionExpand />
+                  </div>
+                </DiscussionContent>
+                <DiscussionReplies>
+                  <DiscussionItem value="item-1.1.1">
+                    <DiscussionContent className="gap-2">
+                     
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1">
+                          <DiscussionTitle className="flex gap-2 items-center">
+                            <div>Alex Chen</div>
+                            <div className="text-muted-foreground text-xs ">
+                              @alexchen
+                            </div>
+                            <span className="text-muted-foreground text-xs">
+                              •
+                            </span>
+                            <div className="text-muted-foreground text-xs ">
+                              26 minutes ago
+                            </div>
+                          </DiscussionTitle>
+                          <DiscussionBody>
+                            Check out the MDN docs on ARIA - they're
+                            comprehensive and well-maintained.
+                          </DiscussionBody>
+                        </div>
+                      </div>
+                    </DiscussionContent>
+                  </DiscussionItem>
+                </DiscussionReplies>
+              </DiscussionItem>
+              <DiscussionItem value="item-1.2">
+                <DiscussionContent className="gap-2">
+                  
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
+                      <DiscussionTitle className="flex gap-2 items-center">
+                        <div>Sarah Wilson</div>
+                        <div className="text-muted-foreground text-xs ">
+                          @sarahwilson
+                        </div>
+                        <span className="text-muted-foreground text-xs">•</span>
+                        <div className="text-muted-foreground text-xs ">
+                          14 minutes ago
+                        </div>
+                      </DiscussionTitle>
+                      <DiscussionBody>
+                        Thanks for the detailed explanation! This will
+                        definitely help with my current project.
+                      </DiscussionBody>
+                    </div>
+                  </div>
+                </DiscussionContent>
+              </DiscussionItem>
+            </DiscussionReplies>
+          </DiscussionItem>
+        </Discussion>
 
-  return <NavBar items={navItems} />;
+    </div>
+  )
 }
