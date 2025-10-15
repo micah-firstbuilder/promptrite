@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type React from "react";
@@ -33,6 +34,7 @@ export default function RootLayout({
           <Suspense fallback={<div>Loading...</div>}>
             {children}
             <Analytics />
+            <Toaster />
           </Suspense>
         </Providers>
       </body>

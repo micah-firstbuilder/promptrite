@@ -21,6 +21,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import DiscussionSection from "@/components/DiscussionSection";
 
 // Mock challenge data - in a real app, this would come from an API
 const challengeData: Record<string, any> = {
@@ -598,6 +599,9 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
             </div>
           </section>
         </div>
+
+        {/* Peer Examples */}
+        <DiscussionSection challengeId={challengeId} />
       </main>
     </div>
   );

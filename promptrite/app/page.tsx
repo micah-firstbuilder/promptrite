@@ -30,6 +30,7 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 
 export default function Home() {
@@ -74,12 +75,23 @@ export default function Home() {
             </div>
             {/* Actions */}
             <div className="hidden items-center gap-3 md:flex">
-              <a
-                className="font-medium text-neutral-700 text-sm transition hover:text-neutral-900"
-                href="#"
-              >
-                Sign in
-              </a>
+              <SignedOut>
+                <a
+                  className="font-medium text-neutral-700 text-sm transition hover:text-neutral-900"
+                  href="/sign-in"
+                >
+                  Sign in
+                </a>
+              </SignedOut>
+              <SignedIn>
+                <a
+                  className="font-medium text-neutral-700 text-sm transition hover:text-neutral-900"
+                  href="/dashboard"
+                >
+                  Dashboard
+                </a>
+                <UserButton appearance={{ elements: { userButtonAvatarBox: "h-8 w-8" } }} />
+              </SignedIn>
               <a
                 className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 font-semibold text-sm text-white transition hover:bg-neutral-800"
                 href="#cta"
@@ -123,9 +135,16 @@ export default function Home() {
                   Social proof
                 </a>
                 <div className="flex items-center justify-between gap-2 pt-2">
-                  <a className="font-medium text-neutral-700 text-sm" href="#">
-                    Sign in
-                  </a>
+                  <SignedOut>
+                    <a className="font-medium text-neutral-700 text-sm" href="/sign-in">
+                      Sign in
+                    </a>
+                  </SignedOut>
+                  <SignedIn>
+                    <a className="font-medium text-neutral-700 text-sm" href="/dashboard">
+                      Dashboard
+                    </a>
+                  </SignedIn>
                   <a
                     className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 font-semibold text-sm text-white transition hover:bg-neutral-800"
                     href="#cta"
