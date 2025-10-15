@@ -113,13 +113,13 @@ export function DiscussionSection({ challengeId }: DiscussionSectionProps) {
   const threads = buildThreads(examples);
 
   return (
-    <section className="mt-8 rounded-xl border border-border bg-card">
-      <div className="border-border border-b px-5 py-4">
+    <section className="h-[85vh] lg:h-full pb-0 min-h-0 rounded-xl border border-border bg-card overflow-hidden">
+      <div className="border-border border-b px-5 py-4 flex-none">
         <h2 className="font-semibold text-lg">Peer Examples</h2>
         <p className="text-muted-foreground text-sm">Anonymized passing prompts and solutions</p>
       </div>
 
-      <div className="space-y-5 p-5">
+      <div className="space-y-5 p-5 pb-30 h-full min-h-0 overflow-y-auto">
         {error && (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
             {error}
