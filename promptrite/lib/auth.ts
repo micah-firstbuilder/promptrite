@@ -19,28 +19,41 @@ export async function getCurrentUser() {
     .limit(1);
 
   if (dbUser.length === 0) {
-    // Fallback bootstrap: fetch from Clerk and upsert once (in case webhook lagged)
-    const user = await (await clerkClient()).users.getUser(userId);
-    const primaryEmail = user.emailAddresses.find(
-      (e) => e.id === user.primaryEmailAddressId,
-    )?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+    // Fallback bootstrap: attempt Clerk fetch, but don't fail if unavailable
+    let primaryEmail = "";
+    let firstName: string | undefined;
+    let lastName: string | undefined;
+    let username: string | undefined;
+    try {
+      const user = await (clerkClient as any)?.users?.getUser?.(userId);
+      if (user) {
+        primaryEmail =
+          user.emailAddresses.find((e: any) => e.id === user.primaryEmailAddressId)
+            ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+        firstName = user.firstName ?? undefined;
+        lastName = user.lastName ?? undefined;
+        username = user.username ?? undefined;
+      }
+    } catch {
+      // Ignore; create minimal bootstrap record
+    }
 
     await db
       .insert(Users)
       .values({
         id: userId,
         email: primaryEmail,
-        first_name: user.firstName ?? undefined,
-        last_name: user.lastName ?? undefined,
-        username: user.username ?? undefined,
+        first_name: firstName,
+        last_name: lastName,
+        username,
       })
       .onConflictDoUpdate({
         target: Users.id,
         set: {
           email: primaryEmail,
-          first_name: user.firstName ?? undefined,
-          last_name: user.lastName ?? undefined,
-          username: user.username ?? undefined,
+          first_name: firstName,
+          last_name: lastName,
+          username,
         },
       });
 
@@ -72,27 +85,40 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
     .limit(1);
 
   if (dbUser.length === 0) {
-    const user = await (await clerkClient()).users.getUser(userId);
-    const primaryEmail =
-      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
-        ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+    let primaryEmail = "";
+    let firstName: string | undefined;
+    let lastName: string | undefined;
+    let username: string | undefined;
+    try {
+      const user = await (clerkClient as any)?.users?.getUser?.(userId);
+      if (user) {
+        primaryEmail =
+          user.emailAddresses.find((e: any) => e.id === user.primaryEmailAddressId)
+            ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+        firstName = user.firstName ?? undefined;
+        lastName = user.lastName ?? undefined;
+        username = user.username ?? undefined;
+      }
+    } catch {
+      // ignore
+    }
 
     await db
       .insert(Users)
       .values({
         id: userId,
         email: primaryEmail,
-        first_name: user.firstName ?? undefined,
-        last_name: user.lastName ?? undefined,
-        username: user.username ?? undefined,
+        first_name: firstName,
+        last_name: lastName,
+        username,
       })
       .onConflictDoUpdate({
         target: Users.id,
         set: {
           email: primaryEmail,
-          first_name: user.firstName ?? undefined,
-          last_name: user.lastName ?? undefined,
-          username: user.username ?? undefined,
+          first_name: firstName,
+          last_name: lastName,
+          username,
         },
       });
 
