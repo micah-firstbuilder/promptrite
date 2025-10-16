@@ -1,8 +1,10 @@
 import { and, desc, eq, gte } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { Progress, examples } from "@/lib/db";
+import { db, examples, Progress } from "@/lib/db";
 
-export async function getExamplesByChallengeId(challengeId: number, limit = 20) {
+export async function getExamplesByChallengeId(
+  challengeId: number,
+  limit = 20
+) {
   return db
     .select({
       id: examples.id,
@@ -11,7 +13,12 @@ export async function getExamplesByChallengeId(challengeId: number, limit = 20) 
       parent_id: examples.parent_id,
     })
     .from(examples)
-    .where(and(eq(examples.challenge_id, challengeId), eq(examples.is_flagged, false)))
+    .where(
+      and(
+        eq(examples.challenge_id, challengeId),
+        eq(examples.is_flagged, false)
+      )
+    )
     .orderBy(desc(examples.created_at))
     .limit(limit);
 }
@@ -20,7 +27,13 @@ export async function hasPassedChallenge(userId: string, challengeId: number) {
   const rows = await db
     .select({ id: Progress.id })
     .from(Progress)
-    .where(and(eq(Progress.user_id, userId), eq(Progress.challenge_id, challengeId), gte(Progress.score, 100)))
+    .where(
+      and(
+        eq(Progress.user_id, userId),
+        eq(Progress.challenge_id, challengeId),
+        gte(Progress.score, 100)
+      )
+    )
     .limit(1);
   return rows.length > 0;
 }
@@ -51,5 +64,3 @@ export async function flagExample(exampleId: number) {
     .returning({ id: examples.id });
   return row;
 }
-
-

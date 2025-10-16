@@ -1,5 +1,6 @@
 "use client";
 
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import {
   Activity,
   ArrowUpRight,
@@ -30,15 +31,12 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useState } from "react";
-import { NavBar } from "@/components/ui/tubelight-navbar";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-
     <div className="min-h-screen bg-white text-neutral-900 antialiased selection:bg-black/10">
       {/* NAV */}
       <header className="relative z-20">
@@ -92,7 +90,9 @@ export default function Home() {
                 >
                   Dashboard
                 </a>
-                <UserButton appearance={{ elements: { userButtonAvatarBox: "h-8 w-8" } }} />
+                <UserButton
+                  appearance={{ elements: { userButtonAvatarBox: "h-8 w-8" } }}
+                />
               </SignedIn>
               <a
                 className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 font-semibold text-sm text-white transition hover:bg-neutral-800"
@@ -138,12 +138,18 @@ export default function Home() {
                 </a>
                 <div className="flex items-center justify-between gap-2 pt-2">
                   <SignedOut>
-                    <a className="font-medium text-neutral-700 text-sm" href="/sign-in">
+                    <a
+                      className="font-medium text-neutral-700 text-sm"
+                      href="/sign-in"
+                    >
                       Sign in
                     </a>
                   </SignedOut>
                   <SignedIn>
-                    <a className="font-medium text-neutral-700 text-sm" href="/dashboard">
+                    <a
+                      className="font-medium text-neutral-700 text-sm"
+                      href="/dashboard"
+                    >
                       Dashboard
                     </a>
                   </SignedIn>
@@ -160,7 +166,6 @@ export default function Home() {
           )}
         </nav>
       </header>
-
 
       {/* HERO with fullscreen video */}
       <section className="relative min-h-screen overflow-hidden">

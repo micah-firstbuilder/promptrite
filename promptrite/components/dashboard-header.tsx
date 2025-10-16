@@ -1,11 +1,11 @@
 "use client";
 
+import { SignOutButton, useUser } from "@clerk/nextjs";
 import { Mail, Menu, Target, TrendingUp, Trophy, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SignOutButton, useUser } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 
@@ -97,11 +97,19 @@ export function DashboardHeader({ activeRoute }: DashboardHeaderProps) {
                   </Avatar>
                 </Link>
                 <SignOutButton redirectUrl="/">
-                  <Button className="hidden md:inline-flex" size="sm" variant="ghost">Log out</Button>
+                  <Button
+                    className="hidden md:inline-flex"
+                    size="sm"
+                    variant="ghost"
+                  >
+                    Log out
+                  </Button>
                 </SignOutButton>
               </>
             ) : (
-              <Link className="hidden md:flex" href="/sign-in">Sign in</Link>
+              <Link className="hidden md:flex" href="/sign-in">
+                Sign in
+              </Link>
             )}
 
             {/* Mobile menu button */}
@@ -143,10 +151,20 @@ export function DashboardHeader({ activeRoute }: DashboardHeaderProps) {
             })}
             {isSignedIn ? (
               <SignOutButton redirectUrl="/">
-                <Button className="w-full justify-start rounded-md px-4 py-2 text-left text-sm" variant="ghost">Log out</Button>
+                <Button
+                  className="w-full justify-start rounded-md px-4 py-2 text-left text-sm"
+                  variant="ghost"
+                >
+                  Log out
+                </Button>
               </SignOutButton>
             ) : (
-              <Link className="block rounded-md px-4 py-2 text-sm text-muted-foreground hover:bg-muted" href="/sign-in">Sign in</Link>
+              <Link
+                className="block rounded-md px-4 py-2 text-muted-foreground text-sm hover:bg-muted"
+                href="/sign-in"
+              >
+                Sign in
+              </Link>
             )}
           </nav>
         )}

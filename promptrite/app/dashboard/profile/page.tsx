@@ -92,7 +92,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex size-14 items-center justify-center rounded-full bg-muted text-xl font-semibold">
+              <div className="flex size-14 items-center justify-center rounded-full bg-muted font-semibold text-xl">
                 {initials || "?"}
               </div>
               <div>
@@ -105,11 +105,15 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-md border border-border p-4">
                 <div className="text-muted-foreground text-sm">Username</div>
-                <div className="font-medium text-foreground">{user?.username || "—"}</div>
+                <div className="font-medium text-foreground">
+                  {user?.username || "—"}
+                </div>
               </div>
               <div className="rounded-md border border-border p-4">
                 <div className="text-muted-foreground text-sm">ELO Rating</div>
+
                 <div className="font-medium text-foreground">{profile?.user.elo_rating ?? user?.elo_rating ?? 1200}</div>
+
               </div>
             </div>
             {(!user?.first_name || !user?.last_name || !user?.username) && (
@@ -233,5 +237,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-

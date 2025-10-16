@@ -1,8 +1,7 @@
 import { auth, clerkClient, getAuth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { Users } from "./db";
-import { db } from "./db";
 import type { NextRequest } from "next/server";
+import { db, Users } from "./db";
 
 export async function getCurrentUser() {
   const { userId } = await auth();
@@ -19,6 +18,7 @@ export async function getCurrentUser() {
     .limit(1);
 
   if (dbUser.length === 0) {
+
     // Fallback bootstrap: attempt Clerk fetch, but don't fail if unavailable
     let primaryEmail = "";
     let firstName: string | undefined;
@@ -37,6 +37,7 @@ export async function getCurrentUser() {
     } catch {
       // Ignore; create minimal bootstrap record
     }
+
 
     await db
       .insert(Users)
@@ -85,6 +86,7 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
     .limit(1);
 
   if (dbUser.length === 0) {
+
     let primaryEmail = "";
     let firstName: string | undefined;
     let lastName: string | undefined;
@@ -102,6 +104,7 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
     } catch {
       // ignore
     }
+
 
     await db
       .insert(Users)
@@ -122,11 +125,7 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
         },
       });
 
-    dbUser = await db
-      .select()
-      .from(Users)
-      .where(eq(Users.id, userId))
-      .limit(1);
+    dbUser = await db.select().from(Users).where(eq(Users.id, userId)).limit(1);
   }
 
   return {

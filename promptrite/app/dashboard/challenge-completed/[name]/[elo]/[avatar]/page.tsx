@@ -2,7 +2,7 @@
 
 import { CheckCircle, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useEffect as useClientEffect } from "react";
@@ -12,6 +12,7 @@ function ChallengeCompletedContent() {
   const params = useParams();
 
   // Decode URL parameters and provide defaults
+
   // Always prefer signed-in user; ignore URL params to avoid stale data
   const [userName, setUserName] = useState("");
   const [userElo, setUserElo] = useState<number>(0);
@@ -33,6 +34,7 @@ function ChallengeCompletedContent() {
     hydrate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  
 
   const [displayElo, setDisplayElo] = useState(0);
   const initials = (userName || "")

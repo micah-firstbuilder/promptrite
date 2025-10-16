@@ -1,8 +1,7 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { Progress } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { db, Progress } from "@/lib/db";
 
 // Mock challenge data - in a real app this would come from a database
 const challenges = [

@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const publishable = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
@@ -25,6 +25,3 @@ export async function GET(request: NextRequest) {
     auth: authInfo,
   });
 }
-
-
-
