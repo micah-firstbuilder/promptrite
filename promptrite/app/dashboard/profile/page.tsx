@@ -63,6 +63,21 @@ export default function ProfilePage() {
       if (p.ok) setProfile((await p.json()) as ProfileResponse);
     };
     run();
+    const onUpdate = async () => {
+      const p = await fetch("/api/me/profile", { cache: "no-store", credentials: "include" });
+      if (p.ok) setProfile((await p.json()) as ProfileResponse);
+    };
+    const onFocus = () => { void onUpdate(); };
+    if (typeof window !== "undefined") {
+      window.addEventListener("progress-updated", onUpdate);
+      window.addEventListener("focus", onFocus);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("progress-updated", onUpdate);
+        window.removeEventListener("focus", onFocus);
+      }
+    };
   }, []);
 
   const initials = `${(user?.first_name?.[0] ?? "").toUpperCase()}${(user?.last_name?.[0] ?? "").toUpperCase()}`;
