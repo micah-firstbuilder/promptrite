@@ -25,8 +25,11 @@ export const challengesRouter = router({
     const recentProgress = userProgress.filter((p) => (p.created_at as Date) >= sevenDaysAgo);
     const currentStreak = recentProgress.length;
 
-    const totalUsers = 100;
-    const userRank = Math.max(1, Math.floor((averageScore / 2000) * totalUsers));
+    // Derive total users approximately from ELO distribution of progress owners
+    const totalUsers = Math.max(1, new Set(userProgress.map((p) => p.user_id as string)).size || 1);
+    // Rank 1 is highest score; clamp within [1, totalUsers]
+    const normalized = Math.min(2000, Math.max(0, averageScore));
+    const userRank = Math.max(1, totalUsers - Math.floor((normalized / 2000) * (totalUsers - 1)));
 
     return {
       challenges: challengesMock,

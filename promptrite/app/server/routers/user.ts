@@ -62,6 +62,9 @@ export const userRouter = router({
 
       const refreshed = await db.select().from(Users).where(eq(Users.id, ctx.user.id)).limit(1);
       const u = refreshed[0];
+      if (!u) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
       return {
         id: u.id,
         email: u.email,

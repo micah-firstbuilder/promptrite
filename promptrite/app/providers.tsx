@@ -25,19 +25,21 @@ export function Providers({ children }: PropsWithChildren) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (!publishableKey) return <>{children}</>;
 
-  const queryClient = new QueryClient();
-  const trpcClient = trpc.createClient({
+  const queryClientRef = (globalThis as any).__qr__ || new QueryClient();
+  (globalThis as any).__qr__ = queryClientRef;
+  const trpcClientRef = (globalThis as any).__trpc__ || trpc.createClient({
     links: [
       loggerLink({ enabled: () => process.env.NODE_ENV === "development" }),
       httpBatchLink({ url: "/api/trpc", transformer: superjson }),
     ],
   });
+  (globalThis as any).__trpc__ = trpcClientRef;
 
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <DebugAuthState />
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <trpc.Provider client={trpcClientRef} queryClient={queryClientRef}>
+        <QueryClientProvider client={queryClientRef}>{children}</QueryClientProvider>
       </trpc.Provider>
     </ClerkProvider>
   );

@@ -15,7 +15,7 @@ export const profileRouter = router({
     .query(async ({ input }) => {
       const key = input.key.trim();
       const userRows = await db
-        .select({ id: Users.id, email: Users.email, username: Users.username, first_name: Users.first_name, last_name: Users.last_name, elo_rating: Users.elo_rating })
+        .select({ id: Users.id, username: Users.username, first_name: Users.first_name, last_name: Users.last_name, elo_rating: Users.elo_rating })
         .from(Users)
         .where(or(eq(Users.id, key), ilike(Users.username, key)))
         .limit(1);

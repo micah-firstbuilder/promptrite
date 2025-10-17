@@ -73,8 +73,7 @@ export default function ChallengePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const challengeId = params.id as string;
-  const challenge = challengeData[challengeId] ?? challengeData["1"]; // Fallback to default challenge
-  const forcePass = searchParams?.get("forcePass") === "1";
+  const challenge = challengeData[challengeId];
 
   // Signed-in user display data
   const [displayName, setDisplayName] = useState<string>("");
@@ -179,7 +178,7 @@ export default function ChallengePage() {
       return;
     }
 
-    const passed = forcePass || answer === challenge.expectedAnswer;
+    const passed = answer === challenge.expectedAnswer;
     setSubmittedAnswer(answer);
     setTestResult({ passed, submitted: true });
 

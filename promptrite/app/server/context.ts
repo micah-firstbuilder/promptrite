@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { Users } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function createContext(opts: { req?: Request }) {
   let user: {
@@ -17,19 +18,16 @@ export async function createContext(opts: { req?: Request }) {
 
   const { userId } = await auth();
   if (userId) {
-    const rows = await db.select().from(Users).where(eq(Users.id, userId)).limit(1);
-    if (rows.length > 0) {
-      const u = rows[0];
-      user = {
-        id: u.id,
-        email: u.email,
-        first_name: u.first_name ?? null,
-        last_name: u.last_name ?? null,
-        username: u.username ?? null,
-        elo_rating: u.elo_rating,
-        created_at: u.created_at,
-      };
-    }
+    const u = await getCurrentUser();
+    user = {
+      id: u.id,
+      email: u.email,
+      first_name: u.first_name ?? null,
+      last_name: u.last_name ?? null,
+      username: u.username ?? null,
+      elo_rating: u.elo_rating,
+      created_at: u.created_at as unknown as Date,
+    };
   }
 
   return { db, user };

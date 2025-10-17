@@ -26,14 +26,13 @@ export async function GET() {
     const solvedDifficulties = new Set<string>();
 
     if (passed.length > 0) {
-      const rows = await db
-        .select({ id: challenges.id, difficulty: challenges.difficulty })
-        .from(challenges)
-        .where(
-          and(
-            gte(challenges.id, 0),
-          ),
-        );
+      const ids = Array.from(new Set(passed.map((p) => p.challenge_id as number)));
+      const rows = ids.length > 0
+        ? await db
+            .select({ id: challenges.id, difficulty: challenges.difficulty })
+            .from(challenges)
+            .where(inArray(challenges.id, ids))
+        : [];
       // Map by id for quick lookup
       const byId = new Map<number, { difficulty: string }>();
       for (const r of rows) byId.set(r.id, { difficulty: r.difficulty });

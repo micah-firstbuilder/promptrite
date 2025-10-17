@@ -203,7 +203,7 @@ export async function GET(request: Request) {
     const key = decodeURIComponent(raw).trim();
     // Match by id OR username (case-insensitive)
     const userRows = await db
-      .select({ id: Users.id, email: Users.email, username: Users.username, first_name: Users.first_name, last_name: Users.last_name, elo_rating: Users.elo_rating })
+      .select({ id: Users.id, username: Users.username, first_name: Users.first_name, last_name: Users.last_name, elo_rating: Users.elo_rating })
       .from(Users)
       .where(or(eq(Users.id, key), ilike(Users.username, key)))
       .limit(1);

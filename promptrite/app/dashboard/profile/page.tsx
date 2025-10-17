@@ -130,7 +130,14 @@ export default function ProfilePage() {
                     try {
                       setSaving(true);
                       setSaveError(null);
-                      const updated = await updateUser.mutateAsync(form);
+                      const payload: { first_name?: string; last_name?: string; username?: string } = {};
+                      const fn = form.first_name?.trim();
+                      const ln = form.last_name?.trim();
+                      const un = form.username?.trim();
+                      if (fn) payload.first_name = fn;
+                      if (ln) payload.last_name = ln;
+                      if (un) payload.username = un;
+                      const updated = await updateUser.mutateAsync(payload);
                       setUser(updated as unknown as ApiUser);
                       await profileQuery.refetch();
                     } catch (err: any) {
