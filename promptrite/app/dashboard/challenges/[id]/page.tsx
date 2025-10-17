@@ -6,6 +6,7 @@ import {
   Bot,
   Check,
   CheckCircle,
+  ChevronDown,
   Clipboard,
   Clock,
   Lightbulb,
@@ -16,13 +17,12 @@ import {
   Undo,
   User,
   XCircle,
-  ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import DiscussionSection from "@/components/DiscussionSection";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/app/utils/trpc";
 
@@ -105,7 +105,6 @@ export default function ChallengePage() {
   });
   const [submittedAnswer, setSubmittedAnswer] = useState<number | null>(null);
   const [testOpen, setTestOpen] = useState(true);
-  
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -292,9 +291,9 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       {/* Top Bar */}
-      <header className="border-border border-b flex-none">
+      <header className="flex-none border-border border-b">
         <div className="mx-auto flex w-[95%] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Button
@@ -336,10 +335,10 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
       </header>
 
       {/* Main 1-1 Split */}
-      <main className="mx-auto w-[95%] px-4 py-6 sm:px-6 lg:px-8 flex-1 overflow-y-auto lg:overflow-hidden">
+      <main className="mx-auto w-[95%] flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:overflow-hidden lg:px-8">
         <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Left: Task Specifications */}
-          <section className="flex h-[85vh] lg:h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border">
+          <section className="flex h-[85vh] min-h-0 flex-col overflow-hidden rounded-xl border border-border lg:h-full">
             {/* Title */}
             <div className="border-border border-b bg-card px-5 py-4 sm:px-6">
               <div className="flex items-center justify-between">
@@ -370,66 +369,106 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
 
             {/* Tabs */}
             <div className="flex min-h-0 flex-1 flex-col">
-              <Tabs defaultValue="description" className="flex min-h-0 flex-1 flex-col">
+              <Tabs
+                className="flex min-h-0 flex-1 flex-col"
+                defaultValue="description"
+              >
                 <div className="border-border border-b px-5 pt-2 sm:px-6">
                   <TabsList>
                     <TabsTrigger value="description">Description</TabsTrigger>
                     <TabsTrigger value="examples">Peer examples</TabsTrigger>
                   </TabsList>
                 </div>
-                <TabsContent value="description" className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                <TabsContent
+                  className="flex-1 overflow-y-auto px-5 py-5 sm:px-6"
+                  value="description"
+                >
                   <div className="space-y-6">
                     <div>
-                      <h2 className="font-semibold text-[20px] tracking-tight">Description</h2>
-                      <p className="mt-2 text-[15px] text-muted-foreground leading-6">{challenge.description}</p>
+                      <h2 className="font-semibold text-[20px] tracking-tight">
+                        Description
+                      </h2>
+                      <p className="mt-2 text-[15px] text-muted-foreground leading-6">
+                        {challenge.description}
+                      </p>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-[18px] tracking-tight">Requirements</h3>
+                      <h3 className="font-semibold text-[18px] tracking-tight">
+                        Requirements
+                      </h3>
                       <ul className="mt-3 space-y-2">
-                        {challenge.requirements.map((req: string, idx: number) => (
-                          <li className="flex items-start gap-3" key={idx}>
-                            <Check className="mt-0.5 size-4" />
-                            <span className="text-[15px]">{req}</span>
-                          </li>
-                        ))}
+                        {challenge.requirements.map(
+                          (req: string, idx: number) => (
+                            <li className="flex items-start gap-3" key={idx}>
+                              <Check className="mt-0.5 size-4" />
+                              <span className="text-[15px]">{req}</span>
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="rounded-lg border border-border p-4">
                         <p className="font-medium text-sm">Case 1 (visible)</p>
                         <div className="mt-2 text-sm">
-                          <p>energy = [{challenge.visibleCase.energy.join(", ")}]</p>
+                          <p>
+                            energy = [{challenge.visibleCase.energy.join(", ")}]
+                          </p>
                           <p>k = {challenge.visibleCase.k}</p>
                         </div>
-                        <p className="mt-3 text-muted-foreground text-sm">{challenge.visibleCase.description}</p>
+                        <p className="mt-3 text-muted-foreground text-sm">
+                          {challenge.visibleCase.description}
+                        </p>
                       </div>
                       <div className="rounded-lg border border-border p-4">
                         <p className="font-medium text-sm">Case 2 (hidden)</p>
-                        <p className="mt-2 text-muted-foreground text-sm">{challenge.hiddenCase.description}</p>
+                        <p className="mt-2 text-muted-foreground text-sm">
+                          {challenge.hiddenCase.description}
+                        </p>
                       </div>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-[18px] tracking-tight">Examples</h3>
+                      <h3 className="font-semibold text-[18px] tracking-tight">
+                        Examples
+                      </h3>
                       {challenge.examples.map((example: any, idx: number) => (
-                        <div className="mt-3 rounded-lg border border-border" key={idx}>
-                          <div className="border-border border-b px-4 py-3 font-medium text-sm">{example.title}</div>
-                          <div className="px-4 py-3 text-sm">{example.content}</div>
+                        <div
+                          className="mt-3 rounded-lg border border-border"
+                          key={idx}
+                        >
+                          <div className="border-border border-b px-4 py-3 font-medium text-sm">
+                            {example.title}
+                          </div>
+                          <div className="px-4 py-3 text-sm">
+                            {example.content}
+                          </div>
                         </div>
                       ))}
                     </div>
                     <div className="pt-2">
                       <div className="flex items-center gap-2">
-                        <Button onClick={handleCopySpec} size="sm" variant="outline">
+                        <Button
+                          onClick={handleCopySpec}
+                          size="sm"
+                          variant="outline"
+                        >
                           <Clipboard className="size-4" /> Copy spec
                         </Button>
-                        <Button onClick={handleReset} size="sm" variant="outline">
+                        <Button
+                          onClick={handleReset}
+                          size="sm"
+                          variant="outline"
+                        >
                           <Undo className="size-4" /> Reset chat
                         </Button>
                       </div>
                     </div>
                   </div>
                 </TabsContent>
-                <TabsContent value="examples" className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                <TabsContent
+                  className="flex-1 overflow-y-auto px-5 py-5 sm:px-6"
+                  value="examples"
+                >
                   <div className="h-full min-h-0">
                     <DiscussionSection challengeId={challengeId} />
                   </div>
@@ -439,7 +478,7 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
           </section>
 
           {/* Right: Chat + Validation */}
-          <section className="flex h-[85vh] lg:h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border">
+          <section className="flex h-[85vh] min-h-0 flex-col overflow-hidden rounded-xl border border-border lg:h-full">
             {/* Status banner */}
             <div className="border-border border-b bg-card px-5 py-3 sm:px-6">
               <div className="flex items-center gap-2 text-sm">
@@ -522,11 +561,11 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
             {/* Test results (collapsible) */}
             <div className="border-border border-t bg-card">
               <button
-                type="button"
+                aria-controls="test-results-panel"
+                aria-expanded={testOpen}
                 className="flex w-full items-center justify-between px-5 py-4 sm:px-6"
                 onClick={() => setTestOpen((v) => !v)}
-                aria-expanded={testOpen}
-                aria-controls="test-results-panel"
+                type="button"
               >
                 <div className="flex items-center gap-2">
                   <ListChecks className="size-4" />
@@ -548,7 +587,10 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
                 </div>
               </button>
               {testOpen && (
-                <div id="test-results-panel" className="px-5 py-4 sm:px-6 border-t border-border">
+                <div
+                  className="border-border border-t px-5 py-4 sm:px-6"
+                  id="test-results-panel"
+                >
                   <div className="text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-24 text-muted-foreground">Case 1</span>
@@ -618,9 +660,6 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
             </div>
           </section>
         </div>
-
-       
-        
       </main>
     </div>
   );

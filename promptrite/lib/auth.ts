@@ -1,8 +1,7 @@
 import { auth, clerkClient, getAuth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { Users } from "./db";
-import { db } from "./db";
 import type { NextRequest } from "next/server";
+import { db, Users } from "./db";
 
 export async function getCurrentUser() {
   const { userId } = await auth();
@@ -122,11 +121,7 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
         },
       });
 
-    dbUser = await db
-      .select()
-      .from(Users)
-      .where(eq(Users.id, userId))
-      .limit(1);
+    dbUser = await db.select().from(Users).where(eq(Users.id, userId)).limit(1);
   }
 
   return {

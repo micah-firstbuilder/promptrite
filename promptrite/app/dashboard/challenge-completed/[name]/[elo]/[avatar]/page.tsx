@@ -1,16 +1,13 @@
 "use client";
 
 import { CheckCircle, Sparkles } from "lucide-react";
-import Image from "next/image";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/app/utils/trpc";
-import { useEffect as useClientEffect } from "react";
 
 function ChallengeCompletedContent() {
   const router = useRouter();
-  const params = useParams();
 
   // Decode URL parameters and provide defaults
   // Always prefer signed-in user; ignore URL params to avoid stale data

@@ -1,8 +1,6 @@
 import type { inferAsyncReturnType } from "@trpc/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { eq } from "drizzle-orm";
-import { Users } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function createContext(opts: { req?: Request }) {
@@ -34,5 +32,3 @@ export async function createContext(opts: { req?: Request }) {
 }
 
 export type Context = inferAsyncReturnType<typeof createContext>;
-
-
