@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/app/utils/trpc";
 import { useEffect as useClientEffect } from "react";
 
 function ChallengeCompletedContent() {
@@ -18,21 +19,14 @@ function ChallengeCompletedContent() {
   const [userAvatar, setUserAvatar] = useState("");
 
   // Hydrate from /api/user for real data
+  const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
   useEffect(() => {
-    const hydrate = async () => {
-      try {
-        const res = await fetch("/api/user", { credentials: "include" });
-        if (res.ok) {
-          const u = await res.json();
-          setUserName(`${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || u.username || u.email);
-          setUserElo(u.elo_rating ?? 1200);
-          setUserAvatar("/aipreplogo.png");
-        }
-      } catch {}
-    };
-    hydrate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (me) {
+      setUserName(`${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() || me.username || me.email);
+      setUserElo(me.elo_rating ?? 1200);
+      setUserAvatar("/aipreplogo.png");
+    }
+  }, [me]);
 
   const [displayElo, setDisplayElo] = useState(0);
   const initials = (userName || "")

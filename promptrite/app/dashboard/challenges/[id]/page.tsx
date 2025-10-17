@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import DiscussionSection from "@/components/DiscussionSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { trpc } from "@/app/utils/trpc";
 
 
 // Mock challenge data - in a real app, this would come from an API
@@ -113,21 +114,15 @@ export default function ChallengePage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await fetch("/api/user", { credentials: "include" });
-        if (res.ok) {
-          const u = await res.json();
-          const name = `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || u.username || u.email;
-          setDisplayName(name ?? "You");
-          setDisplayElo(u.elo_rating ?? 1200);
-          setDisplayAvatar("/aipreplogo.png");
-        }
-      } catch {}
-    };
-    loadUser();
-  }, []);
+    if (me) {
+      const name = `${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() || me.username || me.email;
+      setDisplayName(name ?? "You");
+      setDisplayElo(me.elo_rating ?? 1200);
+      setDisplayAvatar("/aipreplogo.png");
+    }
+  }, [me]);
 
   if (!challenge) {
     return (
@@ -170,6 +165,7 @@ export default function ChallengePage() {
     return null;
   };
 
+  const createProgress = trpc.progress.create.useMutation();
   const handleSubmit = async () => {
     const answer = extractAnswer();
     if (answer === null) {
@@ -189,21 +185,14 @@ export default function ChallengePage() {
 
     // Save progress to database for both attempts and passes to feed streaks
     try {
-      await fetch("/api/progress", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await createProgress.mutateAsync({
+        challenge_id: Number.parseInt(challengeId, 10),
+        score: passed ? 100 : 0,
+        metadata: {
+          answer,
+          completed_at: new Date().toISOString(),
+          difficulty: challenge.difficulty,
         },
-        credentials: "include",
-        body: JSON.stringify({
-          challenge_id: Number.parseInt(challengeId, 10),
-          score: passed ? 100 : 0,
-          metadata: {
-            answer,
-            completed_at: new Date().toISOString(),
-            difficulty: challenge.difficulty,
-          },
-        }),
       });
       // Notify other tabs/pages (e.g., profile) to refresh stats immediately
       if (typeof window !== "undefined") {

@@ -2,6 +2,7 @@
 
 import { TrendingUp, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { trpc } from "@/app/utils/trpc";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { StatCard } from "@/components/stat-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,28 +45,15 @@ export default function DashboardPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
+  const challengesQuery = trpc.challenges.list.useQuery(undefined, { enabled: true });
   useEffect(() => {
-    async function fetchDashboardData() {
-      try {
-        // Trigger a lightweight server sync of Clerk → Neon user profile.
-        // The /api/user endpoint calls getCurrentUser which upserts if missing/stale.
-        await fetch("/api/user", { cache: "no-store" });
-
-        const response = await fetch("/api/challenges");
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data.stats);
-          setChallenges(data.challenges);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
+    if (challengesQuery.data) {
+      setStats(challengesQuery.data.stats as UserStats);
+      setChallenges(challengesQuery.data.challenges as Challenge[]);
+      setLoading(false);
     }
-
-    fetchDashboardData();
-  }, []);
+  }, [challengesQuery.data]);
 
   return (
     <div className="min-h-screen bg-background">

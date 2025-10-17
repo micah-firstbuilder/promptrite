@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { trpc } from "@/app/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BadgeCard } from "@/components/profile/BadgeCard";
@@ -15,7 +16,7 @@ interface ApiUser {
   last_name: string | null;
   username: string | null;
   elo_rating: number;
-  created_at: string;
+  created_at: string | Date;
 }
 
 interface ProfileResponse {
@@ -50,22 +51,24 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ first_name: "", last_name: "", username: "" });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const updateUser = trpc.user.update.useMutation();
 
+  const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
+  const profileQuery = trpc.profile.byKey.useQuery(
+    { key: (me?.username || me?.id || "").toString() },
+    { enabled: Boolean(me?.username || me?.id) }
+  );
   useEffect(() => {
-    const run = async () => {
-      const res = await fetch("/api/user", { credentials: "include" });
-      if (res.ok) {
-        const data = (await res.json()) as ApiUser;
-        setUser(data);
-        setForm({ first_name: data.first_name ?? "", last_name: data.last_name ?? "", username: data.username ?? "" });
-      }
-      const p = await fetch("/api/me/profile", { cache: "no-store", credentials: "include" });
-      if (p.ok) setProfile((await p.json()) as ProfileResponse);
-    };
-    run();
+    if (me) {
+      const data = me as ApiUser;
+      setUser(data);
+      setForm({ first_name: data.first_name ?? "", last_name: data.last_name ?? "", username: data.username ?? "" });
+    }
+  }, [me]);
+  useEffect(() => {
+    if (profileQuery.data) setProfile(profileQuery.data as unknown as ProfileResponse);
     const onUpdate = async () => {
-      const p = await fetch("/api/me/profile", { cache: "no-store", credentials: "include" });
-      if (p.ok) setProfile((await p.json()) as ProfileResponse);
+      await profileQuery.refetch();
     };
     const onFocus = () => { void onUpdate(); };
     if (typeof window !== "undefined") {
@@ -78,7 +81,7 @@ export default function ProfilePage() {
         window.removeEventListener("focus", onFocus);
       }
     };
-  }, []);
+  }, [profileQuery]);
 
   const initials = `${(user?.first_name?.[0] ?? "").toUpperCase()}${(user?.last_name?.[0] ?? "").toUpperCase()}`;
 
@@ -127,22 +130,11 @@ export default function ProfilePage() {
                     try {
                       setSaving(true);
                       setSaveError(null);
-                      const res = await fetch("/api/user", {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        credentials: "include",
-                        body: JSON.stringify(form),
-                      });
-                      if (!res.ok) {
-                        const j = (await res.json().catch(() => ({}))) as { error?: string };
-                        setSaveError(j.error || "Failed to save profile");
-                        return;
-                      }
-                      const next = (await res.json()) as ApiUser;
-                      setUser(next);
-                      // Refresh computed profile sections
-                      const p = await fetch("/api/me/profile", { cache: "no-store", credentials: "include" });
-                      if (p.ok) setProfile((await p.json()) as ProfileResponse);
+                      const updated = await updateUser.mutateAsync(form);
+                      setUser(updated as unknown as ApiUser);
+                      await profileQuery.refetch();
+                    } catch (err: any) {
+                      setSaveError(err?.message || "Failed to save profile");
                     } finally {
                       setSaving(false);
                     }

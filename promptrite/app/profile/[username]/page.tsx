@@ -1,27 +1,16 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BadgeCard } from "@/components/profile/BadgeCard";
 import { Heatmap } from "@/components/profile/Heatmap";
 import { RecentChallengeItem } from "@/components/profile/RecentChallengeItem";
-import { headers } from "next/headers";
+import { trpc } from "@/app/utils/trpc";
+import { useParams } from "next/navigation";
 
-async function getBaseUrl() {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-}
-
-async function getData(username: string) {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/profile/${username}`, { next: { revalidate: 30 } });
-  if (!res.ok) return null;
-  return (await res.json()) as any;
-}
-
-export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = await params;
-  const data = await getData(username);
+export default function PublicProfilePage() {
+  const params = useParams();
+  const username = (params?.username as string) ?? "";
+  const { data } = trpc.profile.byKey.useQuery({ key: username }, { enabled: Boolean(username) });
   if (!data) {
     return (
       <main className="mx-auto max-w-4xl px-4 py-12">
@@ -99,15 +88,6 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = await params;
-  return {
-    title: `${username} • Profile`,
-    openGraph: {
-      title: `${username} • Profile`,
-    },
-  };
-}
 
 
 
