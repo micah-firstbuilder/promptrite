@@ -1,7 +1,6 @@
 "use client";
 
 import { Percent, Signal } from "lucide-react";
-import Link from "next/link";
 import { CategoryBadge } from "./category-badge";
 
 type Category = "design" | "code" | "image" | "video";
@@ -38,11 +37,12 @@ export function ChallengeCard({
   const prettyType = () => (type === "multi-turn" ? "Multi‑turn" : "One‑shot");
 
   return (
-    <Link
-      className={`group relative block overflow-hidden rounded-lg bg-card text-left ring-1 ring-border ring-inset transition hover:ring-muted-foreground/30 ${
-        isSelected ? "outline outline-2 outline-primary/60" : ""
+    <button
+      type="button"
+      aria-label={`Open details for ${title}`}
+      className={`group relative block w-full overflow-hidden rounded-lg bg-card text-left ring-1 ring-border ring-inset transition hover:ring-muted-foreground/30 ${
+        isSelected ? "outline outline-primary/60" : ""
       }`}
-      href={`/dashboard/challenges/${id}`}
       onClick={onClick}
     >
       <div className="p-4">
@@ -67,6 +67,6 @@ export function ChallengeCard({
           </span>
         </div>
       </div>
-    </Link>
+    </button>
   );
 }

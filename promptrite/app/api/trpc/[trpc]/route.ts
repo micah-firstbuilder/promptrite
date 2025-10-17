@@ -1,7 +1,7 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
-import { appRouter } from '../../../../src/servers/routers/_app';
 import { type NextRequest } from 'next/server';
-import { createContext } from '../../../server/context';
+import { appRouter } from '@/app/server/routers/_app';
+import { createContext } from '@/app/server/context';
 
 // Export API handler for GET and POST
 export const GET = async (req: NextRequest) => {

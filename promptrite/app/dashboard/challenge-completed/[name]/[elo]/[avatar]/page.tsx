@@ -1,23 +1,38 @@
 "use client";
 
 import { CheckCircle, Sparkles } from "lucide-react";
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/app/utils/trpc";
 
 function ChallengeCompletedContent() {
   const router = useRouter();
-  const params = useParams();
 
   // Decode URL parameters and provide defaults
-  const userName = decodeURIComponent(params.name as string) || "Alex Rivera";
-  const userElo = Number(decodeURIComponent(params.elo as string)) || 1824;
-  const userAvatar =
-    decodeURIComponent(params.avatar as string) ||
-    "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=120&auto=format&fit=crop";
+  // Always prefer signed-in user; ignore URL params to avoid stale data
+  const [userName, setUserName] = useState("");
+  const [userElo, setUserElo] = useState<number>(0);
+  const [userAvatar, setUserAvatar] = useState("");
+
+  // Hydrate from /api/user for real data
+  const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
+  useEffect(() => {
+    if (me) {
+      setUserName(`${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() || me.username || me.email);
+      setUserElo(me.elo_rating ?? 1200);
+      setUserAvatar("/aipreplogo.png");
+    }
+  }, [me]);
 
   const [displayElo, setDisplayElo] = useState(0);
+  const initials = (userName || "")
+    .trim()
+    .split(/\s+/)
+    .map((s: string) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "?";
 
   useEffect(() => {
     const duration = 4000; // 0.5x speed = 4 seconds
@@ -63,16 +78,16 @@ function ChallengeCompletedContent() {
 
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="font-medium text-sm">{userName}</p>
-              <p className="text-muted-foreground text-xs">Elo {userElo}</p>
+              <p className="font-medium text-sm">{userName || "You"}</p>
+              <p className="text-muted-foreground text-xs">Elo {userElo || 1200}</p>
             </div>
-            <Image
-              alt="User avatar"
-              className="size-10 rounded-full border border-border object-cover"
-              height={40}
-              src={userAvatar || "/placeholder.svg"}
-              width={40}
-            />
+            <div
+              aria-label="User initials"
+              className="flex size-10 items-center justify-center rounded-full border border-border bg-muted font-semibold"
+              role="img"
+            >
+              {initials}
+            </div>
           </div>
         </div>
       </header>
@@ -100,15 +115,15 @@ function ChallengeCompletedContent() {
           {/* User Card */}
           <div className="mt-8 rounded-xl border border-border p-6">
             <div className="flex items-center gap-4">
-              <Image
-                alt="User avatar"
-                className="size-14 rounded-full border border-border object-cover"
-                height={56}
-                src={userAvatar || "/placeholder.svg"}
-                width={56}
-              />
+              <div
+                aria-label="User initials"
+                className="flex size-14 items-center justify-center rounded-full border border-border bg-muted font-semibold text-lg"
+                role="img"
+              >
+                {initials}
+              </div>
               <div className="flex-1">
-                <p className="font-semibold text-lg">{userName}</p>
+                <p className="font-semibold text-lg">{userName || "You"}</p>
                 <p className="text-muted-foreground text-sm">
                   Completed successfully
                 </p>

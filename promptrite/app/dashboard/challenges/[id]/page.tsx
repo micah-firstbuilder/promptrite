@@ -19,11 +19,13 @@ import {
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DiscussionSection from "@/components/DiscussionSection";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { trpc } from "@/app/utils/trpc";
+
 
 // Mock challenge data - in a real app, this would come from an API
 const challengeData: Record<string, any> = {
@@ -69,8 +71,14 @@ type StatusType = "idle" | "success" | "error";
 export default function ChallengePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const challengeId = params.id as string;
   const challenge = challengeData[challengeId];
+
+  // Signed-in user display data
+  const [displayName, setDisplayName] = useState<string>("");
+  const [displayElo, setDisplayElo] = useState<number>(0);
+  const [displayAvatar, setDisplayAvatar] = useState<string>("");
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -103,6 +111,16 @@ export default function ChallengePage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
+  useEffect(() => {
+    if (me) {
+      const name = `${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() || me.username || me.email;
+      setDisplayName(name ?? "You");
+      setDisplayElo(me.elo_rating ?? 1200);
+      setDisplayAvatar("/aipreplogo.png");
+    }
+  }, [me]);
 
   if (!challenge) {
     return (
@@ -145,6 +163,7 @@ export default function ChallengePage() {
     return null;
   };
 
+  const createProgress = trpc.progress.create.useMutation();
   const handleSubmit = async () => {
     const answer = extractAnswer();
     if (answer === null) {
@@ -162,61 +181,44 @@ export default function ChallengePage() {
     setSubmittedAnswer(answer);
     setTestResult({ passed, submitted: true });
 
-    if (passed) {
-      // Save progress to database
-      try {
-        await fetch("/api/progress", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            challenge_id: challengeId,
-            score: 100, // Points for completing the challenge
-            metadata: {
-              answer,
-              completed_at: new Date().toISOString(),
-              difficulty: challenge.difficulty,
-            },
-          }),
-        });
+    // Save progress to database for both attempts and passes to feed streaks
+    try {
+      await createProgress.mutateAsync({
+        challenge_id: Number.parseInt(challengeId, 10),
+        score: passed ? 100 : 0,
+        metadata: {
+          answer,
+          completed_at: new Date().toISOString(),
+          difficulty: challenge.difficulty,
+        },
+      });
+      // Notify other tabs/pages (e.g., profile) to refresh stats immediately
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("progress-updated"));
+      }
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    }
 
-        // Update baseline metrics
+    if (passed) {
+      // Update baseline metrics (cosmetic)
+      try {
         await fetch("/api/baseline", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            metric_type: "elo",
-            value: 1824 + Math.floor(Math.random() * 50), // Simulate ELO increase
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ metric_type: "elo", value: 1824 + Math.floor(Math.random() * 50) }),
         });
-      } catch (error) {
-        console.error("Failed to save progress:", error);
-      }
+      } catch {}
 
-      setStatus({
-        type: "success",
-        headline: "Challenge solved",
-        sub: "Visible case passed. Hidden case evaluated server‑side.",
-      });
+      setStatus({ type: "success", headline: "Challenge solved", sub: "Visible case passed. Hidden case evaluated server‑side." });
       setTimeout(() => {
-        const userName = encodeURIComponent("Alex Rivera");
-        const userElo = encodeURIComponent("1824");
-        const userAvatar = encodeURIComponent(
-          "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=120&auto=format&fit=crop"
-        );
-        router.push(
-          `/dashboard/challenge-completed/${userName}/${userElo}/${userAvatar}`
-        );
+        const userName = encodeURIComponent(displayName || "You");
+        const userElo = encodeURIComponent(String(displayElo || 1200));
+        const userAvatar = encodeURIComponent(displayAvatar || "/aipreplogo.png");
+        router.push(`/dashboard/challenge-completed/${userName}/${userElo}/${userAvatar}`);
       }, 1500);
     } else {
-      setStatus({
-        type: "error",
-        headline: "Incorrect answer",
-        sub: "Check your jumps and try again.",
-      });
+      setStatus({ type: "error", headline: "Incorrect answer", sub: "Check your jumps and try again." });
     }
   };
 
@@ -318,14 +320,14 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
           {/* User card */}
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="font-medium text-sm">Alex Rivera</p>
-              <p className="text-muted-foreground text-xs">Elo 1824</p>
+              <p className="font-medium text-sm">{displayName || "You"}</p>
+              <p className="text-muted-foreground text-xs">Elo {displayElo || 1200}</p>
             </div>
             <Image
               alt="User avatar"
               className="size-10 rounded-full border border-border object-cover"
               height={40}
-              src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=120&auto=format&fit=crop"
+              src={displayAvatar || "/aipreplogo.png"}
               width={40}
             />
           </div>

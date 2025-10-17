@@ -299,7 +299,8 @@ export default function ChallengesPage() {
   const selectChallenge = () => {
     if (selectedChallenge) {
       setSelectedChallengeId(selectedChallenge.id);
-      closeDetail();
+      // Navigate to detail page after selecting to avoid stale overlay state bugs
+      window.location.href = `/dashboard/challenges/${selectedChallenge.id}`;
     }
   };
 
