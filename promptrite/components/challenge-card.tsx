@@ -38,12 +38,12 @@ export function ChallengeCard({
 
   return (
     <button
-      type="button"
       aria-label={`Open details for ${title}`}
       className={`group relative block w-full overflow-hidden rounded-lg bg-card text-left ring-1 ring-border ring-inset transition hover:ring-muted-foreground/30 ${
         isSelected ? "outline outline-primary/60" : ""
       }`}
       onClick={onClick}
+      type="button"
     >
       <div className="p-4">
         <div className="flex items-center justify-between gap-2">

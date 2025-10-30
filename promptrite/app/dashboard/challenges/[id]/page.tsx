@@ -1,65 +1,20 @@
 "use client";
 
-import {
-  ArrowLeft,
-  BadgeCheck,
-  Bot,
-  Check,
-  CheckCircle,
-  ChevronDown,
-  Clipboard,
-  Clock,
-  Lightbulb,
-  ListChecks,
-  Monitor,
-  Send,
-  Sparkles,
-  Undo,
-  User,
-  XCircle,
-} from "lucide-react";
+import { ArrowLeft, BadgeCheck, Clock, Sparkles, XCircle } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import DiscussionSection from "@/components/DiscussionSection";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/app/utils/trpc";
+import { ImagePreviewPanel } from "@/components/preview/ImagePreviewPanel";
+import { UiPreviewPanel } from "@/components/preview/UiPreviewPanel";
+import { VideoPreviewPanel } from "@/components/preview/VideoPreviewPanel";
+import Chat from "@/components/steering-demo/Chat";
+import { TaskSpecifications } from "@/components/TaskSpecifications";
+import { TechnicalModeBadge } from "@/components/technical-mode-badge";
+import { Button } from "@/components/ui/button";
+import { track } from "@/lib/utils/analytics";
 
-
-// Mock challenge data - in a real app, this would come from an API
-const challengeData: Record<string, any> = {
-  "1": {
-    title: "Max Energy Path with K-Jumps",
-    category: "Code",
-    type: "Multi‑turn",
-    tags: ["Algorithm", "Arrays", "Dynamic Traversal"],
-    description:
-      "You are given an integer array energy and an integer k. Choose a starting index i, then repeatedly jump by k steps: i, i+k, i+2k, ... until the index exceeds the array bounds. The score is the sum of visited values. Return the maximum possible score over all valid starting positions.",
-    requirements: [
-      "Explain your approach briefly in chat.",
-      "Provide the final numeric answer for Case 1 in the format: answer: NUMBER",
-      "Then press Submit to validate.",
-    ],
-    visibleCase: {
-      energy: [5, 2, -10, -5, 1],
-      k: 3,
-      description: "Expected to return the best achievable score.",
-    },
-    hiddenCase: {
-      description: "Evaluated after you pass Case 1.",
-    },
-    examples: [
-      {
-        title: "Example A",
-        content:
-          "energy = [4, -1, 7, 3], k = 2 → Try starts at indices 0..3 and pick the max sum along jumps of length 2.",
-      },
-    ],
-    expectedAnswer: 3,
-    outputType: "code",
-  },
-};
+// Challenge data is now fetched from the API
 
 type Message = {
   text: string;
@@ -73,7 +28,6 @@ export default function ChallengePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const challengeId = params.id as string;
-  const challenge = challengeData[challengeId];
 
   // Signed-in user display data
   const [displayName, setDisplayName] = useState<string>("");
@@ -93,8 +47,8 @@ export default function ChallengePage() {
     sub: string;
   }>({
     type: "idle",
-    headline: "Awaiting submission",
-    sub: "Solve Case 1, then submit.",
+    headline: "",
+    sub: "",
   });
   const [testResult, setTestResult] = useState<{
     passed: boolean;
@@ -105,6 +59,11 @@ export default function ChallengePage() {
   });
   const [submittedAnswer, setSubmittedAnswer] = useState<number | null>(null);
   const [testOpen, setTestOpen] = useState(true);
+  const [isScoring, setIsScoring] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<{
+    attemptId: string;
+    conversation: Array<{ role: string; content: string }>;
+  } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -113,16 +72,47 @@ export default function ChallengePage() {
   }, [messages]);
 
   const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
+  const { data: challengeData } = trpc.challenges.getById.useQuery(
+    { id: Number.parseInt(challengeId, 10) },
+    { enabled: !!challengeId }
+  );
+  const { data: submissions } = trpc.progress.listByChallenge.useQuery(
+    { challengeId: Number.parseInt(challengeId, 10) },
+    { enabled: !!challengeId }
+  );
+  // Mutations must be declared before any conditional returns to maintain hook order
+  const createProgress = trpc.progress.create.useMutation();
+  const scoringMutation = trpc.scoring.scoreConversation.useMutation();
+
   useEffect(() => {
     if (me) {
-      const name = `${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() || me.username || me.email;
+      const name =
+        `${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() ||
+        me.username ||
+        me.email;
       setDisplayName(name ?? "You");
       setDisplayElo(me.elo_rating ?? 1200);
       setDisplayAvatar("/aipreplogo.png");
     }
   }, [me]);
 
-  if (!challenge) {
+  // Handle attemptId query param for deep-linking
+  useEffect(() => {
+    const attemptId = searchParams.get("attemptId");
+    if (attemptId && submissions) {
+      const submission = submissions.find(
+        (s) => (s.metadata as any)?.attemptId === attemptId
+      );
+      if (submission && (submission.metadata as any)?.conversation) {
+        setSelectedSubmission({
+          attemptId: (submission.metadata as any).attemptId,
+          conversation: (submission.metadata as any).conversation,
+        });
+      }
+    }
+  }, [searchParams, submissions]);
+
+  if (!challengeData) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
@@ -139,6 +129,15 @@ export default function ChallengePage() {
       </div>
     );
   }
+
+  // Check if challenge mode is supported
+  const isSupportedMode = challengeData.technicalMode !== "unsupported";
+  const isUIMode =
+    challengeData.technicalMode === "ui" ||
+    challengeData.technicalMode === "code";
+  const isImageMode = challengeData.technicalMode === "image";
+  const isVideoMode = challengeData.technicalMode === "video";
+  const isPreviewOnlyMode = isUIMode || isImageMode || isVideoMode;
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -163,8 +162,10 @@ export default function ChallengePage() {
     return null;
   };
 
-  const createProgress = trpc.progress.create.useMutation();
   const handleSubmit = async () => {
+    // Prevent multiple submissions
+    if (isScoring || scoringMutation.isPending) return;
+
     const answer = extractAnswer();
     if (answer === null) {
       setStatus({
@@ -177,48 +178,201 @@ export default function ChallengePage() {
       return;
     }
 
-    const passed = answer === challenge.expectedAnswer;
+    // Note: Answer validation is now handled by the scoring service
+    const passed = true; // Placeholder - actual validation happens server-side
     setSubmittedAnswer(answer);
     setTestResult({ passed, submitted: true });
 
-    // Save progress to database for both attempts and passes to feed streaks
+    // Start scoring process
+    setIsScoring(true);
+    setStatus({
+      type: "idle",
+      headline: "Scoring in progress",
+      sub: "Evaluating your conversation...",
+    });
+
+    // Generate unique attempt ID and build conversation before try block
+    const attemptId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const scoringStartTime = Date.now();
+    const conversation = messages.map((m) => ({
+      role: m.role,
+      content: m.text,
+    }));
+
     try {
-      await createProgress.mutateAsync({
-        challenge_id: Number.parseInt(challengeId, 10),
-        score: passed ? 100 : 0,
-        metadata: {
-          answer,
-          completed_at: new Date().toISOString(),
-          difficulty: challenge.difficulty,
-        },
+      // Emit analytics event with start time
+      track("scoring_start", {
+        challengeId: Number.parseInt(challengeId, 10),
+        attemptId,
+        startTime: scoringStartTime,
       });
-      // Notify other tabs/pages (e.g., profile) to refresh stats immediately
+
+      // Call scoring service
+      const scoringResult = await scoringMutation.mutateAsync({
+        challengeId,
+        conversation,
+        attemptId,
+      });
+
+      // Calculate scoring latency
+      const scoringLatency = Date.now() - scoringStartTime;
+
+      // Store results in sessionStorage for immediate display
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("progress-updated"));
+        sessionStorage.setItem(
+          `scoring:${attemptId}`,
+          JSON.stringify(scoringResult)
+        );
+        sessionStorage.setItem(
+          `scoringConv:${attemptId}`,
+          JSON.stringify(conversation)
+        );
+      }
+
+      // Check if we have a partial result
+      const isPartialResult =
+        !scoringResult.dimensions ||
+        Object.keys(scoringResult.dimensions).length < 2 ||
+        scoringResult.compositeScore === 0;
+
+      // Emit success analytics with latency and partial result flag
+      track("scoring_success", {
+        challengeId: Number.parseInt(challengeId, 10),
+        compositeScore: scoringResult.compositeScore,
+        attemptId,
+        latency: scoringLatency,
+        isPartial: isPartialResult,
+      });
+
+      // Save progress to database for both attempts and passes to feed streaks
+      try {
+        await createProgress.mutateAsync({
+          challenge_id: Number.parseInt(challengeId, 10),
+          score: passed ? 100 : 0,
+          metadata: {
+            answer,
+            completed_at: new Date().toISOString(),
+            difficulty:
+              (challengeData?.difficulty as "easy" | "medium" | "hard") ||
+              "medium",
+            scoringResult, // Include scoring data
+            isPartial: isPartialResult, // Flag partial results
+            latency: scoringLatency, // Include latency for analytics
+            attemptId, // Persist attempt ID for retrieval
+            conversation, // Persist conversation for seeding chats
+          },
+        });
+        // Notify other tabs/pages (e.g., profile) to refresh stats immediately
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("progress-updated"));
+        }
+      } catch (error) {
+        console.error("Failed to save progress:", error);
+      }
+
+      if (passed) {
+        // Update baseline metrics (cosmetic)
+        try {
+          await fetch("/api/baseline", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              metric_type: "elo",
+              value: 1824 + Math.floor(Math.random() * 50),
+            }),
+          });
+        } catch {}
+
+        setStatus({
+          type: "success",
+          headline: "Challenge solved",
+          sub: isPartialResult
+            ? "Scoring complete. Some dimensions are still processing. Redirecting to results..."
+            : "Scoring complete. Redirecting to results...",
+        });
+
+        // Navigate to completion page with scoring data
+        setTimeout(() => {
+          const userName = encodeURIComponent(displayName || "You");
+          const userElo = encodeURIComponent(String(displayElo || 1200));
+          const userAvatar = encodeURIComponent(
+            displayAvatar || "/aipreplogo.png"
+          );
+          router.push(
+            `/dashboard/challenge-completed/${userName}/${userElo}/${userAvatar}?challengeId=${challengeId}&attemptId=${attemptId}`
+          );
+        }, 1500);
+      } else {
+        setStatus({
+          type: "error",
+          headline: "Incorrect answer",
+          sub: isPartialResult
+            ? "Check your jumps and try again. Some scoring dimensions are still processing."
+            : "Check your jumps and try again.",
+        });
+        setIsScoring(false);
       }
     } catch (error) {
-      console.error("Failed to save progress:", error);
-    }
+      console.error("Scoring failed:", error);
 
-    if (passed) {
-      // Update baseline metrics (cosmetic)
-      try {
-        await fetch("/api/baseline", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ metric_type: "elo", value: 1824 + Math.floor(Math.random() * 50) }),
+      // Calculate latency even for failed requests
+      const scoringLatency = Date.now() - scoringStartTime;
+
+      // Check if error contains partial results
+      const hasPartialResults =
+        error &&
+        typeof error === "object" &&
+        "cause" in error &&
+        error.cause &&
+        typeof error.cause === "object" &&
+        "compositeScore" in error.cause;
+
+      // Emit failure analytics with latency and partial result flag
+      track("scoring_failure", {
+        challengeId: Number.parseInt(challengeId, 10),
+        error: error instanceof Error ? error.message : String(error),
+        latency: scoringLatency,
+        hasPartialResults,
+      });
+
+      // If we have partial results, store them and show a partial state
+      if (hasPartialResults && typeof window !== "undefined") {
+        const partialResult = (error as any).cause;
+
+        sessionStorage.setItem(
+          `scoring:${attemptId}`,
+          JSON.stringify(partialResult)
+        );
+        sessionStorage.setItem(
+          `scoringConv:${attemptId}`,
+          JSON.stringify(conversation)
+        );
+
+        setStatus({
+          type: "error",
+          headline: "Partial scoring results",
+          sub: "We were able to score some dimensions. You can view the partial results or try again.",
         });
-      } catch {}
 
-      setStatus({ type: "success", headline: "Challenge solved", sub: "Visible case passed. Hidden case evaluated server‑side." });
-      setTimeout(() => {
-        const userName = encodeURIComponent(displayName || "You");
-        const userElo = encodeURIComponent(String(displayElo || 1200));
-        const userAvatar = encodeURIComponent(displayAvatar || "/aipreplogo.png");
-        router.push(`/dashboard/challenge-completed/${userName}/${userElo}/${userAvatar}`);
-      }, 1500);
-    } else {
-      setStatus({ type: "error", headline: "Incorrect answer", sub: "Check your jumps and try again." });
+        // Navigate to completion page with partial results
+        setTimeout(() => {
+          const userName = encodeURIComponent(displayName || "You");
+          const userElo = encodeURIComponent(String(displayElo || 1200));
+          const userAvatar = encodeURIComponent(
+            displayAvatar || "/aipreplogo.png"
+          );
+          router.push(
+            `/dashboard/challenge-completed/${userName}/${userElo}/${userAvatar}?challengeId=${challengeId}&attemptId=${attemptId}`
+          );
+        }, 1500);
+      } else {
+        setStatus({
+          type: "error",
+          headline: "Scoring failed",
+          sub: "Please try again or contact support if the issue persists.",
+        });
+        setIsScoring(false);
+      }
     }
   };
 
@@ -241,18 +395,21 @@ export default function ChallengePage() {
     ]);
     setStatus({
       type: "idle",
-      headline: "Awaiting submission",
-      sub: "Solve Case 1, then submit.",
+      headline: "",
+      sub: "",
     });
     setTestResult({ passed: false, submitted: false });
     setSubmittedAnswer(null);
   };
 
   const handleCopySpec = async () => {
-    const spec = `Task: ${challenge.title}
-Array: [${challenge.visibleCase.energy.join(", ")}], k=${challenge.visibleCase.k}
-Category: ${challenge.category}
-Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide final line: "answer: NUMBER".`;
+    if (!challengeData) return;
+
+    const spec = `Task: ${challengeData.title}
+Description: ${challengeData.description}
+Category: ${challengeData.category}
+Difficulty: ${challengeData.difficulty || "Unknown"}
+${challengeData.example ? `Example: ${challengeData.example}` : ""}`;
 
     try {
       await navigator.clipboard.writeText(spec);
@@ -265,8 +422,8 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
         () =>
           setStatus({
             type: "idle",
-            headline: "Awaiting submission",
-            sub: "Solve Case 1, then submit.",
+            headline: "",
+            sub: "",
           }),
         1200
       );
@@ -290,11 +447,40 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
     }
   };
 
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return "Just now";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86_400)
+      return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2_592_000)
+      return `${Math.floor(diffInSeconds / 86_400)}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const handleSubmissionClick = (submission: any) => {
+    const attemptId = (submission.metadata as any)?.attemptId;
+    const conversation = (submission.metadata as any)?.conversation;
+
+    if (attemptId && conversation) {
+      setSelectedSubmission({ attemptId, conversation });
+      // Focus the chat area after setting the submission
+      setTimeout(() => {
+        const chatElement = document.querySelector("[data-chat-area]");
+        if (chatElement) {
+          (chatElement as HTMLElement).focus();
+        }
+      }, 100);
+    }
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       {/* Top Bar */}
-      <header className="flex-none border-border border-b">
-        <div className="mx-auto flex w-[95%] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <header className="flex-none border-border border-b px-6 py-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
               className="size-9"
@@ -308,9 +494,12 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
               <Sparkles className="size-5" />
             </div>
             <div>
-              <p className="font-semibold text-[22px] leading-6 tracking-tight">
-                Daily Challenge
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-[22px] leading-6 tracking-tight">
+                  Daily Challenge
+                </p>
+                <TechnicalModeBadge mode={challengeData.technicalMode} />
+              </div>
               <p className="text-muted-foreground text-sm">
                 Solve via conversation — no editor required
               </p>
@@ -321,7 +510,9 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="font-medium text-sm">{displayName || "You"}</p>
-              <p className="text-muted-foreground text-xs">Elo {displayElo || 1200}</p>
+              <p className="text-muted-foreground text-xs">
+                Elo {displayElo || 1200}
+              </p>
             </div>
             <Image
               alt="User avatar"
@@ -335,329 +526,69 @@ Return the maximum sum over sequences i, i+k, i+2k, ... within bounds. Provide f
       </header>
 
       {/* Main 1-1 Split */}
-      <main className="mx-auto w-[95%] flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:overflow-hidden lg:px-8">
-        <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left: Task Specifications */}
-          <section className="flex h-[85vh] min-h-0 flex-col overflow-hidden rounded-xl border border-border lg:h-full">
-            {/* Title */}
-            <div className="border-border border-b bg-card px-5 py-4 sm:px-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="font-semibold text-[24px] tracking-tight sm:text-[26px]">
-                    {challenge.title}
-                  </h1>
-                  <div className="mt-1 flex items-center gap-3 text-xs">
-                    <span className="rounded-full border border-border bg-muted px-2.5 py-1">
-                      {challenge.category}
-                    </span>
-                    {challenge.tags.map((tag: string) => (
-                      <span
-                        className="rounded-full border border-border px-2.5 py-1"
-                        key={tag}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-muted-foreground text-xs">Mode</p>
-                  <p className="font-medium text-sm">{challenge.type}</p>
-                </div>
-              </div>
-            </div>
+      <main className="flex-1 overflow-hidden px-6 py-4">
+        <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+          {/* Left: Task Specifications - Narrow Sidebar */}
+          <TaskSpecifications
+            challenge={challengeData}
+            challengeId={challengeId}
+            formatTimeAgo={formatTimeAgo}
+            onCopySpec={handleCopySpec}
+            onReset={handleReset}
+            onSubmissionClick={handleSubmissionClick}
+            submissions={submissions}
+            technicalMode={challengeData.technicalMode}
+          />
 
-            {/* Tabs */}
-            <div className="flex min-h-0 flex-1 flex-col">
-              <Tabs
-                className="flex min-h-0 flex-1 flex-col"
-                defaultValue="description"
-              >
-                <div className="border-border border-b px-5 pt-2 sm:px-6">
-                  <TabsList>
-                    <TabsTrigger value="description">Description</TabsTrigger>
-                    <TabsTrigger value="examples">Peer examples</TabsTrigger>
-                  </TabsList>
+          {/* Right: Chat Workspace */}
+          <section className="flex h-full min-h-0 flex-col overflow-hidden">
+            {isSupportedMode ? (
+              isPreviewOnlyMode ? (
+                /* Preview-only mode for ui/image/video - replaces chat */
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  {isUIMode ? (
+                    <UiPreviewPanel
+                      challengeDescription={
+                        challengeData.description || undefined
+                      }
+                      challengeExample={challengeData.example || undefined}
+                      challengeTitle={challengeData.title}
+                    />
+                  ) : isImageMode ? (
+                    <ImagePreviewPanel />
+                  ) : (
+                    <VideoPreviewPanel />
+                  )}
                 </div>
-                <TabsContent
-                  className="flex-1 overflow-y-auto px-5 py-5 sm:px-6"
-                  value="description"
-                >
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="font-semibold text-[20px] tracking-tight">
-                        Description
-                      </h2>
-                      <p className="mt-2 text-[15px] text-muted-foreground leading-6">
-                        {challenge.description}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[18px] tracking-tight">
-                        Requirements
-                      </h3>
-                      <ul className="mt-3 space-y-2">
-                        {challenge.requirements.map(
-                          (req: string, idx: number) => (
-                            <li className="flex items-start gap-3" key={idx}>
-                              <Check className="mt-0.5 size-4" />
-                              <span className="text-[15px]">{req}</span>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="font-medium text-sm">Case 1 (visible)</p>
-                        <div className="mt-2 text-sm">
-                          <p>
-                            energy = [{challenge.visibleCase.energy.join(", ")}]
-                          </p>
-                          <p>k = {challenge.visibleCase.k}</p>
-                        </div>
-                        <p className="mt-3 text-muted-foreground text-sm">
-                          {challenge.visibleCase.description}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border p-4">
-                        <p className="font-medium text-sm">Case 2 (hidden)</p>
-                        <p className="mt-2 text-muted-foreground text-sm">
-                          {challenge.hiddenCase.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[18px] tracking-tight">
-                        Examples
-                      </h3>
-                      {challenge.examples.map((example: any, idx: number) => (
-                        <div
-                          className="mt-3 rounded-lg border border-border"
-                          key={idx}
-                        >
-                          <div className="border-border border-b px-4 py-3 font-medium text-sm">
-                            {example.title}
-                          </div>
-                          <div className="px-4 py-3 text-sm">
-                            {example.content}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="pt-2">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          onClick={handleCopySpec}
-                          size="sm"
-                          variant="outline"
-                        >
-                          <Clipboard className="size-4" /> Copy spec
-                        </Button>
-                        <Button
-                          onClick={handleReset}
-                          size="sm"
-                          variant="outline"
-                        >
-                          <Undo className="size-4" /> Reset chat
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent
-                  className="flex-1 overflow-y-auto px-5 py-5 sm:px-6"
-                  value="examples"
-                >
-                  <div className="h-full min-h-0">
-                    <DiscussionSection challengeId={challengeId} />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </section>
-
-          {/* Right: Chat + Validation */}
-          <section className="flex h-[85vh] min-h-0 flex-col overflow-hidden rounded-xl border border-border lg:h-full">
-            {/* Status banner */}
-            <div className="border-border border-b bg-card px-5 py-3 sm:px-6">
-              <div className="flex items-center gap-2 text-sm">
-                {getStatusIcon()}
-                <span className="font-medium">{status.headline}</span>
-                <span className="text-muted-foreground">{status.sub}</span>
-              </div>
-            </div>
-
-            {/* Chat area */}
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
-                {messages.map((msg, idx) => (
-                  <div className="flex items-start gap-3" key={idx}>
-                    <div className="flex size-8 items-center justify-center rounded-lg border border-border">
-                      {msg.role === "user" ? (
-                        <User className="size-4" />
-                      ) : (
-                        <Bot className="size-4" />
-                      )}
-                    </div>
-                    <div className="max-w-[85%]">
-                      <div className="rounded-xl border border-border bg-card px-4 py-3">
-                        <p className="text-[15px]">{msg.text}</p>
-                      </div>
-                      <p className="mt-1 text-muted-foreground text-xs">
-                        {msg.role === "user" ? "You" : "Assistant"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Composer */}
-              <div className="border-border border-t p-3 sm:p-4">
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="sr-only" htmlFor="composer">
-                      Message
-                    </label>
-                    <div className="rounded-xl border border-border bg-card px-4 py-3">
-                      <textarea
-                        className="w-full resize-none bg-transparent text-[15px] outline-none placeholder:text-muted-foreground"
-                        id="composer"
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                          }
-                        }}
-                        placeholder="Type your reasoning... end with: answer: 3"
-                        rows={2}
-                        value={input}
-                      />
-                    </div>
-                  </div>
-                  <Button className="shrink-0" onClick={handleSend}>
-                    <Send className="size-4" />
-                    <span className="font-medium text-sm">Send</span>
-                  </Button>
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="text-muted-foreground text-xs">
-                    Shift+Enter for newline
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button onClick={handleSubmit} size="sm" variant="outline">
-                      <CheckCircle className="size-4" /> Submit
-                    </Button>
-                    <Button onClick={handleHint} size="sm" variant="outline">
-                      <Lightbulb className="size-4" /> Hint
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Test results (collapsible) */}
-            <div className="border-border border-t bg-card">
-              <button
-                aria-controls="test-results-panel"
-                aria-expanded={testOpen}
-                className="flex w-full items-center justify-between px-5 py-4 sm:px-6"
-                onClick={() => setTestOpen((v) => !v)}
-                type="button"
-              >
-                <div className="flex items-center gap-2">
-                  <ListChecks className="size-4" />
-                  <p className="font-medium text-sm">Test Result</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`rounded-full border px-2.5 py-1 text-xs ${
-                      testResult.passed
-                        ? "border-green-500/20 bg-green-500/10 text-green-700"
-                        : "border-border"
-                    }`}
-                  >
-                    {testResult.passed ? "1" : "0"}/1 passed
-                  </div>
-                  <ChevronDown
-                    className={`size-4 transition-transform ${testOpen ? "" : "-rotate-90"}`}
+              ) : (
+                /* General mode - chat only */
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  <Chat
+                    autoFocus
+                    seed={
+                      selectedSubmission?.conversation as
+                        | Array<{ role: "user" | "assistant"; content: string }>
+                        | undefined
+                    }
                   />
                 </div>
-              </button>
-              {testOpen && (
-                <div
-                  className="border-border border-t px-5 py-4 sm:px-6"
-                  id="test-results-panel"
-                >
-                  <div className="text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="w-24 text-muted-foreground">Case 1</span>
-                      <span
-                        className={`rounded-md border px-2.5 py-1 ${
-                          testResult.submitted
-                            ? testResult.passed
-                              ? "border-green-500/20 bg-green-500/10 text-green-700"
-                              : "border-red-500/20 bg-red-500/10 text-red-700"
-                            : "border-border"
-                        }`}
-                      >
-                        {testResult.submitted
-                          ? testResult.passed
-                            ? "Passed"
-                            : "Failed"
-                          : "Waiting"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Submission Output */}
-                  <div className="mt-4 border-border border-t pt-4">
-                    <div className="flex items-center gap-2">
-                      <Monitor className="size-4" />
-                      <p className="font-medium text-sm">Submission Output</p>
-                      <span className="ml-2 rounded-full border border-border bg-muted px-2 py-0.5 text-xs">
-                        Auto
-                      </span>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="rounded-lg border border-border bg-card p-4">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium text-sm">App Preview</p>
-                          <span
-                            className={`rounded-full border px-2.5 py-1 text-xs ${
-                              testResult.submitted
-                                ? testResult.passed
-                                  ? "border-green-500/20 bg-green-500/10 text-green-700"
-                                  : "border-amber-500/20 bg-amber-500/10 text-amber-700"
-                                : "border-border"
-                            }`}
-                          >
-                            {testResult.submitted
-                              ? testResult.passed
-                                ? "Success"
-                                : "Check"
-                              : "Idle"}
-                          </span>
-                        </div>
-                        <div className="mt-3">
-                          <div className="flex items-baseline gap-2">
-                            <span className="font-semibold text-[22px] tracking-tight">
-                              {submittedAnswer !== null ? submittedAnswer : "—"}
-                            </span>
-                            <span className="text-muted-foreground text-sm">
-                              Computed answer
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              )
+            ) : (
+              <div className="border-border border-b bg-destructive/5 p-4">
+                <div className="flex items-start gap-3">
+                  <XCircle className="mt-0.5 size-5 flex-shrink-0 text-destructive" />
+                  <div>
+                    <h3 className="font-semibold text-destructive text-sm">
+                      Unsupported Challenge Type
+                    </h3>
+                    <p className="mt-1 text-muted-foreground text-xs">
+                      This challenge type ({challengeData.category}) is not
+                      currently supported. Please try a different challenge.
+                    </p>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </section>
         </div>
       </main>

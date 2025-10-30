@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardHeader } from "@/components/dashboard-header";
 import { trpc } from "@/app/utils/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { BadgeCard } from "@/components/profile/BadgeCard";
 import { Heatmap } from "@/components/profile/Heatmap";
 import { RecentChallengeItem } from "@/components/profile/RecentChallengeItem";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ApiUser {
   id: string;
@@ -48,7 +48,11 @@ interface ProfileResponse {
 export default function ProfilePage() {
   const [user, setUser] = useState<ApiUser | null>(null);
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const [form, setForm] = useState({ first_name: "", last_name: "", username: "" });
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    username: "",
+  });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const updateUser = trpc.user.update.useMutation();
@@ -62,15 +66,22 @@ export default function ProfilePage() {
     if (me) {
       const data = me as ApiUser;
       setUser(data);
-      setForm({ first_name: data.first_name ?? "", last_name: data.last_name ?? "", username: data.username ?? "" });
+      setForm({
+        first_name: data.first_name ?? "",
+        last_name: data.last_name ?? "",
+        username: data.username ?? "",
+      });
     }
   }, [me]);
   useEffect(() => {
-    if (profileQuery.data) setProfile(profileQuery.data as unknown as ProfileResponse);
+    if (profileQuery.data)
+      setProfile(profileQuery.data as unknown as ProfileResponse);
     const onUpdate = async () => {
       await profileQuery.refetch();
     };
-    const onFocus = () => { void onUpdate(); };
+    const onFocus = () => {
+      void onUpdate();
+    };
     if (typeof window !== "undefined") {
       window.addEventListener("progress-updated", onUpdate);
       window.addEventListener("focus", onFocus);
@@ -114,15 +125,22 @@ export default function ProfilePage() {
               </div>
               <div className="rounded-md border border-border p-4">
                 <div className="text-muted-foreground text-sm">ELO Rating</div>
-                <div className="font-medium text-foreground">{profile?.user.elo_rating ?? user?.elo_rating ?? 1200}</div>
+                <div className="font-medium text-foreground">
+                  {profile?.user.elo_rating ?? user?.elo_rating ?? 1200}
+                </div>
               </div>
             </div>
-            {(!user?.first_name || !user?.last_name || !user?.username) && (
-              <div className="rounded-lg border border-dashed border-border p-4">
+            {!(user?.first_name && user?.last_name && user?.username) && (
+              <div className="rounded-lg border border-border border-dashed p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-medium text-foreground">Complete your profile</div>
-                    <p className="text-muted-foreground text-sm">Add your name and a username to unlock badges and a public profile page.</p>
+                    <div className="font-medium text-foreground">
+                      Complete your profile
+                    </div>
+                    <p className="text-muted-foreground text-sm">
+                      Add your name and a username to unlock badges and a public
+                      profile page.
+                    </p>
                   </div>
                 </div>
                 <form
@@ -132,7 +150,11 @@ export default function ProfilePage() {
                     try {
                       setSaving(true);
                       setSaveError(null);
-                      const payload: { first_name?: string; last_name?: string; username?: string } = {};
+                      const payload: {
+                        first_name?: string;
+                        last_name?: string;
+                        username?: string;
+                      } = {};
                       const fn = form.first_name?.trim();
                       const ln = form.last_name?.trim();
                       const un = form.username?.trim();
@@ -152,32 +174,44 @@ export default function ProfilePage() {
                   <input
                     aria-label="First name"
                     className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    onChange={(e) =>
+                      setForm((s) => ({ ...s, first_name: e.target.value }))
+                    }
                     placeholder="First name"
                     value={form.first_name}
-                    onChange={(e) => setForm((s) => ({ ...s, first_name: e.target.value }))}
                   />
                   <input
                     aria-label="Last name"
                     className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    onChange={(e) =>
+                      setForm((s) => ({ ...s, last_name: e.target.value }))
+                    }
                     placeholder="Last name"
                     value={form.last_name}
-                    onChange={(e) => setForm((s) => ({ ...s, last_name: e.target.value }))}
                   />
                   <input
                     aria-label="Username"
                     className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                    placeholder="Username"
+                    onChange={(e) =>
+                      setForm((s) => ({ ...s, username: e.target.value }))
+                    }
                     pattern="^[a-zA-Z0-9_\-\.]{3,20}$"
+                    placeholder="Username"
                     title="3-20 chars, letters, numbers, underscore, dash, dot"
                     value={form.username}
-                    onChange={(e) => setForm((s) => ({ ...s, username: e.target.value }))}
                   />
-                  <button className="rounded-md bg-primary px-3 py-2 text-white text-sm disabled:opacity-50" disabled={saving} type="submit">
+                  <button
+                    className="rounded-md bg-primary px-3 py-2 text-sm text-white disabled:opacity-50"
+                    disabled={saving}
+                    type="submit"
+                  >
                     {saving ? "Saving..." : "Save"}
                   </button>
                 </form>
                 {saveError && (
-                  <p className="mt-2 text-destructive text-sm" role="alert">{saveError}</p>
+                  <p className="mt-2 text-destructive text-sm" role="alert">
+                    {saveError}
+                  </p>
                 )}
               </div>
             )}
@@ -189,7 +223,13 @@ export default function ProfilePage() {
           <div className="mb-3 font-semibold text-foreground">Badges</div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {profile?.badges?.map((b) => (
-              <BadgeCard key={b.id} label={b.label} description={b.description} earned={b.earned} progress={b.progress} />
+              <BadgeCard
+                description={b.description}
+                earned={b.earned}
+                key={b.id}
+                label={b.label}
+                progress={b.progress}
+              />
             ))}
           </div>
         </section>
@@ -203,7 +243,9 @@ export default function ProfilePage() {
             <CardContent>
               {profile?.activity && <Heatmap data={profile.activity} />}
               <div className="mt-3 text-muted-foreground text-sm">
-                Total submissions: {profile?.stats.totalSubmissions ?? 0} • Max streak: {profile?.stats.maxStreak ?? 0} • Current: {profile?.stats.currentStreak ?? 0}
+                Total submissions: {profile?.stats.totalSubmissions ?? 0} • Max
+                streak: {profile?.stats.maxStreak ?? 0} • Current:{" "}
+                {profile?.stats.currentStreak ?? 0}
               </div>
             </CardContent>
           </Card>
@@ -216,7 +258,7 @@ export default function ProfilePage() {
               <TabsTrigger value="recent">Recent Challenges</TabsTrigger>
               <TabsTrigger value="badges">All Badges</TabsTrigger>
             </TabsList>
-            <TabsContent value="recent" className="space-y-3">
+            <TabsContent className="space-y-3" value="recent">
               {profile?.recentChallenges?.map((c) => (
                 <RecentChallengeItem key={`${c.id}-${c.created_at}`} {...c} />
               ))}
@@ -224,7 +266,13 @@ export default function ProfilePage() {
             <TabsContent value="badges">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {profile?.badges?.map((b) => (
-                  <BadgeCard key={`all-${b.id}`} label={b.label} description={b.description} earned={b.earned} progress={b.progress} />
+                  <BadgeCard
+                    description={b.description}
+                    earned={b.earned}
+                    key={`all-${b.id}`}
+                    label={b.label}
+                    progress={b.progress}
+                  />
                 ))}
               </div>
             </TabsContent>

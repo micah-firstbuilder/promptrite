@@ -1,16 +1,19 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useParams } from "next/navigation";
+import { trpc } from "@/app/utils/trpc";
 import { BadgeCard } from "@/components/profile/BadgeCard";
 import { Heatmap } from "@/components/profile/Heatmap";
 import { RecentChallengeItem } from "@/components/profile/RecentChallengeItem";
-import { trpc } from "@/app/utils/trpc";
-import { useParams } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PublicProfilePage() {
   const params = useParams();
   const username = (params?.username as string) ?? "";
-  const { data } = trpc.profile.byKey.useQuery({ key: username }, { enabled: Boolean(username) });
+  const { data } = trpc.profile.byKey.useQuery(
+    { key: username },
+    { enabled: Boolean(username) }
+  );
   if (!data) {
     return (
       <main className="mx-auto max-w-4xl px-4 py-12">
@@ -29,14 +32,16 @@ export default function PublicProfilePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="flex size-14 items-center justify-center rounded-full bg-muted text-xl font-semibold">
+            <div className="flex size-14 items-center justify-center rounded-full bg-muted font-semibold text-xl">
               {initials || "?"}
             </div>
             <div>
               <p className="font-medium text-foreground">
                 {data.user.first_name || ""} {data.user.last_name || ""}
               </p>
-              <p className="text-muted-foreground text-sm">ELO {data.user.elo_rating}</p>
+              <p className="text-muted-foreground text-sm">
+                ELO {data.user.elo_rating}
+              </p>
             </div>
           </div>
         </CardContent>
@@ -46,7 +51,13 @@ export default function PublicProfilePage() {
         <div className="mb-3 font-semibold text-foreground">Badges</div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {data.badges?.map((b: any) => (
-            <BadgeCard key={b.id} label={b.label} description={b.description} earned={b.earned} progress={b.progress} />
+            <BadgeCard
+              description={b.description}
+              earned={b.earned}
+              key={b.id}
+              label={b.label}
+              progress={b.progress}
+            />
           ))}
         </div>
       </section>
@@ -68,7 +79,7 @@ export default function PublicProfilePage() {
             <TabsTrigger value="recent">Recent Challenges</TabsTrigger>
             <TabsTrigger value="badges">All Badges</TabsTrigger>
           </TabsList>
-          <TabsContent value="recent" className="space-y-3">
+          <TabsContent className="space-y-3" value="recent">
             {data.recentChallenges?.map((c: any) => (
               <RecentChallengeItem key={`${c.id}-${c.created_at}`} {...c} />
             ))}
@@ -76,7 +87,13 @@ export default function PublicProfilePage() {
           <TabsContent value="badges">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {data.badges?.map((b: any) => (
-                <BadgeCard key={`all-${b.id}`} label={b.label} description={b.description} earned={b.earned} progress={b.progress} />
+                <BadgeCard
+                  description={b.description}
+                  earned={b.earned}
+                  key={`all-${b.id}`}
+                  label={b.label}
+                  progress={b.progress}
+                />
               ))}
             </div>
           </TabsContent>
@@ -87,8 +104,3 @@ export default function PublicProfilePage() {
 }
 
 export const dynamic = "force-dynamic";
-
-
-
-
-

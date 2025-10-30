@@ -21,15 +21,60 @@ export interface BadgeDef {
 }
 
 export const BADGES: BadgeDef[] = [
-  { id: "solve-1", label: "First Solve", description: "Complete 1 challenge", threshold: 1 },
-  { id: "solve-5", label: "Rising Coder", description: "Complete 5 challenges", threshold: 5 },
-  { id: "solve-10", label: "Pro Coder", description: "Complete 10 challenges", threshold: 10 },
-  { id: "solve-25", label: "Expert Coder", description: "Complete 25 challenges", threshold: 25 },
-  { id: "solve-50", label: "Elite Coder", description: "Complete 50 challenges", threshold: 50 },
-  { id: "solve-100", label: "Legendary Coder", description: "Complete 100 challenges", threshold: 100 },
-  { id: "first-easy", label: "First Easy", description: "Solve your first Easy challenge", difficulty: "easy" },
-  { id: "first-medium", label: "First Medium", description: "Solve your first Medium challenge", difficulty: "medium" },
-  { id: "first-hard", label: "First Hard", description: "Solve your first Hard challenge", difficulty: "hard" },
+  {
+    id: "solve-1",
+    label: "First Solve",
+    description: "Complete 1 challenge",
+    threshold: 1,
+  },
+  {
+    id: "solve-5",
+    label: "Rising Coder",
+    description: "Complete 5 challenges",
+    threshold: 5,
+  },
+  {
+    id: "solve-10",
+    label: "Pro Coder",
+    description: "Complete 10 challenges",
+    threshold: 10,
+  },
+  {
+    id: "solve-25",
+    label: "Expert Coder",
+    description: "Complete 25 challenges",
+    threshold: 25,
+  },
+  {
+    id: "solve-50",
+    label: "Elite Coder",
+    description: "Complete 50 challenges",
+    threshold: 50,
+  },
+  {
+    id: "solve-100",
+    label: "Legendary Coder",
+    description: "Complete 100 challenges",
+    threshold: 100,
+  },
+  {
+    id: "first-easy",
+    label: "First Easy",
+    description: "Solve your first Easy challenge",
+    difficulty: "easy",
+  },
+  {
+    id: "first-medium",
+    label: "First Medium",
+    description: "Solve your first Medium challenge",
+    difficulty: "medium",
+  },
+  {
+    id: "first-hard",
+    label: "First Hard",
+    description: "Solve your first Hard challenge",
+    difficulty: "hard",
+  },
 ];
 
 export interface ComputeBadgesInput {
@@ -64,8 +109,11 @@ export function computeBadges(input: ComputeBadgesInput): ComputedBadge[] {
       const earned = input.solvedDifficulties.has(b.difficulty);
       return { id: b.id, label: b.label, description: b.description, earned };
     }
-    return { id: b.id, label: b.label, description: b.description, earned: false };
+    return {
+      id: b.id,
+      label: b.label,
+      description: b.description,
+      earned: false,
+    };
   });
 }
-
-

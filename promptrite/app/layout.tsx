@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Suspense } from "react";
+import { ClientProviders } from "./client-providers";
 
-import { Providers } from "./providers";
 // remove second analytics
 
 // Re-enabling 'force-dynamic' to prevent static generation issues with Clerk
@@ -29,16 +30,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Providers>
-          <Suspense fallback={<div>Loading...</div>}>
-            {children}
-            <Analytics />
-            <Toaster />
-          </Suspense>
-        </Providers>
+        {publishableKey ? (
+          <ClerkProvider publishableKey={publishableKey}>
+            <ClientProviders>
+              <Suspense fallback={<div>Loading...</div>}>
+                {children}
+                <Analytics />
+                <Toaster />
+              </Suspense>
+            </ClientProviders>
+          </ClerkProvider>
+        ) : (
+          <ClientProviders>
+            <Suspense fallback={<div>Loading...</div>}>
+              {children}
+              <Analytics />
+              <Toaster />
+            </Suspense>
+          </ClientProviders>
+        )}
       </body>
     </html>
   );

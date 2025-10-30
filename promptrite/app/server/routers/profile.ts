@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import { router, publicProcedure } from "../trpc";
-import { db, Progress, challenges, Users } from "@/lib/db";
-import { computeBadges } from "@/lib/badges";
 import { desc, eq, ilike, or } from "drizzle-orm";
+import { z } from "zod";
+import { computeBadges } from "@/lib/badges";
+import { challenges, db, Progress, Users } from "@/lib/db";
+import { publicProcedure, router } from "../trpc";
 
 function toYMD(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -15,7 +15,13 @@ export const profileRouter = router({
     .query(async ({ input }) => {
       const key = input.key.trim();
       const userRows = await db
-        .select({ id: Users.id, username: Users.username, first_name: Users.first_name, last_name: Users.last_name, elo_rating: Users.elo_rating })
+        .select({
+          id: Users.id,
+          username: Users.username,
+          first_name: Users.first_name,
+          last_name: Users.last_name,
+          elo_rating: Users.elo_rating,
+        })
         .from(Users)
         .where(or(eq(Users.id, key), ilike(Users.username, key)))
         .limit(1);
@@ -58,7 +64,11 @@ export const profileRouter = router({
         }
       }
       const activity: Array<{ date: string; count: number }> = [];
-      for (let d = new Date(start); d <= end; d = new Date(d.getTime() + 86400000)) {
+      for (
+        let d = new Date(start);
+        d <= end;
+        d = new Date(d.getTime() + 86_400_000)
+      ) {
         const k = toYMD(d);
         activity.push({ date: k, count: byDay.get(k) ?? 0 });
       }
@@ -74,9 +84,14 @@ export const profileRouter = router({
       }> = [];
       if (recent.length > 0) {
         const metas = await db
-          .select({ id: challenges.id, title: challenges.title, difficulty: challenges.difficulty, category: challenges.category })
+          .select({
+            id: challenges.id,
+            title: challenges.title,
+            difficulty: challenges.difficulty,
+            category: challenges.category,
+          })
           .from(challenges);
-        const metaById = new Map<number, typeof metas[number]>();
+        const metaById = new Map<number, (typeof metas)[number]>();
         for (const m of metas) metaById.set(m.id, m);
         recentChallenges = recent.map((r) => {
           const m = metaById.get(r.challenge_id as number)!;
@@ -108,5 +123,3 @@ export const profileRouter = router({
       };
     }),
 });
-
-

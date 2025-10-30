@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 interface DayEntry {
   date: string; // YYYY-MM-DD
   count: number; // submissions that day
@@ -22,20 +20,20 @@ function intensity(count: number) {
 export function Heatmap({ data }: HeatmapProps) {
   // Render 53 columns x 7 rows grid
   return (
-    <div className="grid grid-flow-col grid-rows-7 gap-1" role="grid" aria-label="Activity in the last year">
+    <div
+      aria-label="Activity in the last year"
+      className="grid grid-flow-col grid-rows-7 gap-1"
+      role="grid"
+    >
       {data.map((d, idx) => (
         <div
-          key={idx}
           aria-label={`${d.date}: ${d.count} submissions`}
           className={`h-3 w-3 rounded ${intensity(d.count)}`}
+          key={idx}
           role="gridcell"
           title={`${d.date}: ${d.count}`}
-        />)
-      )}
+        />
+      ))}
     </div>
   );
 }
-
-
-
-

@@ -7,13 +7,14 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import type { ChallengeGoal } from "@/types/challenges";
 import { users } from "./users";
 
 export const challenges = pgTable("challenges", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
-  goals: jsonb("goals").notNull(), // Array of goal objects with criteria
+  goals: jsonb("goals").$type<ChallengeGoal[]>().notNull(), // Array of goal objects with criteria
   difficulty: varchar("difficulty", { length: 50 }).default("medium").notNull(), // 'easy', 'medium', 'hard'
   category: varchar("category", { length: 100 }).notNull(),
   is_active: integer("is_active").default(1).notNull(), // 1 = active, 0 = inactive

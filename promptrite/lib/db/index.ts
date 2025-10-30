@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
+import { verifications as verificationsTable } from "./schema/verifications";
 
 // Load environment variables
 const databaseUrl = process.env.DATABASE_URL ?? process.env.NEON_DATABASE_URL;
@@ -28,3 +29,6 @@ export const {
   submissions,
   examples,
 } = schema;
+
+// Explicit export for verifications to fix webpack module resolution
+export const verifications = verificationsTable;

@@ -5,8 +5,6 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 export default clerkMiddleware();
 
 export const config = {
-  matcher: [
-    "/((?!.+\\.[\\w]+$|_next).*)", 
-    "/", 
-    "/(api(?!/trpc).*)(.*)"],
+  // Apply Clerk middleware to all app and API routes (exclude _next and static files)
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/(api|trpc)(.*)"],
 };

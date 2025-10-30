@@ -1,9 +1,8 @@
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { Progress, challenges, users } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { computeBadges } from "@/lib/badges";
+import { challenges, db, Progress } from "@/lib/db";
 
 function toYMD(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -26,13 +25,16 @@ export async function GET() {
     const solvedDifficulties = new Set<string>();
 
     if (passed.length > 0) {
-      const ids = Array.from(new Set(passed.map((p) => p.challenge_id as number)));
-      const rows = ids.length > 0
-        ? await db
-            .select({ id: challenges.id, difficulty: challenges.difficulty })
-            .from(challenges)
-            .where(inArray(challenges.id, ids))
-        : [];
+      const ids = Array.from(
+        new Set(passed.map((p) => p.challenge_id as number))
+      );
+      const rows =
+        ids.length > 0
+          ? await db
+              .select({ id: challenges.id, difficulty: challenges.difficulty })
+              .from(challenges)
+              .where(inArray(challenges.id, ids))
+          : [];
       // Map by id for quick lookup
       const byId = new Map<number, { difficulty: string }>();
       for (const r of rows) byId.set(r.id, { difficulty: r.difficulty });
@@ -101,28 +103,32 @@ export async function GET() {
       score: number;
     }> = [];
     if (recent.length > 0) {
-      const ids = Array.from(new Set(recent.map((r) => r.challenge_id as number)));
-      const metas = ids.length > 0
-        ? await db
-            .select({
-              id: challenges.id,
-              title: challenges.title,
-              difficulty: challenges.difficulty,
-              category: challenges.category,
-            })
-            .from(challenges)
-            .where(inArray(challenges.id, ids))
-        : [];
-      const metaById = new Map<number, typeof metas[number]>();
+      const ids = Array.from(
+        new Set(recent.map((r) => r.challenge_id as number))
+      );
+      const metas =
+        ids.length > 0
+          ? await db
+              .select({
+                id: challenges.id,
+                title: challenges.title,
+                difficulty: challenges.difficulty,
+                category: challenges.category,
+              })
+              .from(challenges)
+              .where(inArray(challenges.id, ids))
+          : [];
+      const metaById = new Map<number, (typeof metas)[number]>();
       for (const m of metas) metaById.set(m.id, m);
       recentChallenges = recent
         .map((r) => {
           const meta = metaById.get(r.challenge_id as number);
           if (!meta) return null; // Guard against missing challenge metadata
           const createdAtValue = (r as any).created_at;
-          const createdAtIso = createdAtValue instanceof Date
-            ? createdAtValue.toISOString()
-            : new Date(createdAtValue).toISOString();
+          const createdAtIso =
+            createdAtValue instanceof Date
+              ? createdAtValue.toISOString()
+              : new Date(createdAtValue).toISOString();
           return {
             id: meta.id,
             title: meta.title,
@@ -166,7 +172,7 @@ export async function GET() {
     if (error instanceof Response) {
       return NextResponse.json(
         { error: error.statusText || "Unauthorized" },
-        { status: error.status || 401 },
+        { status: error.status || 401 }
       );
     }
     const isDev = process.env.NODE_ENV !== "production";
@@ -174,12 +180,9 @@ export async function GET() {
     const stack = isDev && error instanceof Error ? error.stack : undefined;
     return NextResponse.json(
       { error: "Internal Server Error", message, stack },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export const runtime = "nodejs";
-
-
-

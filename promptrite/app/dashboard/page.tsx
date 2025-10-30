@@ -28,16 +28,15 @@ interface UserStats {
   totalUsers: number;
 }
 
+// Challenge interface matching the API response from challenges.list
 interface Challenge {
-  id: string;
+  id: number;
   title: string;
-  subtitle: string;
+  description: string;
   category: string;
-  type: string;
   difficulty: string;
-  time: string;
-  completion: number;
-  points: number;
+  technicalMode: string;
+  example?: string | null;
 }
 
 export default function DashboardPage() {
@@ -46,11 +45,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const { data: me } = trpc.user.me.useQuery(undefined, { staleTime: 30_000 });
-  const challengesQuery = trpc.challenges.list.useQuery(undefined, { enabled: true });
+  const challengesQuery = trpc.challenges.list.useQuery(undefined, {
+    enabled: true,
+  });
   useEffect(() => {
     if (challengesQuery.data) {
       setStats(challengesQuery.data.stats as UserStats);
-      setChallenges(challengesQuery.data.challenges as Challenge[]);
+      // API returns challenges with id as number, matching Challenge interface
+      setChallenges(challengesQuery.data.challenges);
       setLoading(false);
     }
   }, [challengesQuery.data]);
@@ -145,17 +147,17 @@ export default function DashboardPage() {
                           <Badge variant="outline">
                             {challenge.difficulty}
                           </Badge>
-                          <span className="text-muted-foreground text-sm">
-                            {challenge.completion}% completion rate
-                          </span>
+                          <Badge variant="secondary" className="text-xs">
+                            {challenge.category}
+                          </Badge>
                         </div>
+                        {challenge.description && (
+                          <p className="text-muted-foreground text-sm line-clamp-2">
+                            {challenge.description}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-medium text-foreground text-sm">
-                            {challenge.points} pts
-                          </p>
-                        </div>
                         <Button size="sm">Start</Button>
                       </div>
                     </div>

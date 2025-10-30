@@ -27,8 +27,11 @@ export async function getCurrentUser() {
       const user = await (clerkClient as any)?.users?.getUser?.(userId);
       if (user) {
         primaryEmail =
-          user.emailAddresses.find((e: any) => e.id === user.primaryEmailAddressId)
-            ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+          user.emailAddresses.find(
+            (e: any) => e.id === user.primaryEmailAddressId
+          )?.emailAddress ??
+          user.emailAddresses[0]?.emailAddress ??
+          "";
         firstName = user.firstName ?? undefined;
         lastName = user.lastName ?? undefined;
         username = user.username ?? undefined;
@@ -92,8 +95,11 @@ export async function getCurrentUserFromRequest(request: NextRequest) {
       const user = await (clerkClient as any)?.users?.getUser?.(userId);
       if (user) {
         primaryEmail =
-          user.emailAddresses.find((e: any) => e.id === user.primaryEmailAddressId)
-            ?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? "";
+          user.emailAddresses.find(
+            (e: any) => e.id === user.primaryEmailAddressId
+          )?.emailAddress ??
+          user.emailAddresses[0]?.emailAddress ??
+          "";
         firstName = user.firstName ?? undefined;
         lastName = user.lastName ?? undefined;
         username = user.username ?? undefined;

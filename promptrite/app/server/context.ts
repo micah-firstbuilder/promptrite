@@ -1,7 +1,6 @@
 import type { inferAsyncReturnType } from "@trpc/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserFromRequest } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
 
 export async function createContext(opts: { req?: Request }) {
   let user: {
@@ -14,18 +13,22 @@ export async function createContext(opts: { req?: Request }) {
     created_at: Date;
   } | null = null;
 
-  const { userId } = await auth();
-  if (userId) {
-    const u = await getCurrentUser();
-    user = {
-      id: u.id,
-      email: u.email,
-      first_name: u.first_name ?? null,
-      last_name: u.last_name ?? null,
-      username: u.username ?? null,
-      elo_rating: u.elo_rating,
-      created_at: u.created_at as unknown as Date,
-    };
+  // Derive auth from the incoming request; avoids direct auth() which requires middleware detection
+  if (opts.req) {
+    try {
+      const u = await getCurrentUserFromRequest(opts.req as any);
+      user = {
+        id: u.id,
+        email: u.email,
+        first_name: u.first_name ?? null,
+        last_name: u.last_name ?? null,
+        username: u.username ?? null,
+        elo_rating: u.elo_rating,
+        created_at: u.created_at as unknown as Date,
+      };
+    } catch {
+      // user remains null for unauthenticated requests
+    }
   }
 
   return { db, user };

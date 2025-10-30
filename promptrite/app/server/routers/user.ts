@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
-import { db, Users } from "@/lib/db";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
+import { db, Users } from "@/lib/db";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const userRouter = router({
   me: publicProcedure.query(async () => {
@@ -33,8 +33,10 @@ export const userRouter = router({
       if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const update: Record<string, string> = {};
-      if (typeof input.first_name === "string") update.first_name = input.first_name;
-      if (typeof input.last_name === "string") update.last_name = input.last_name;
+      if (typeof input.first_name === "string")
+        update.first_name = input.first_name;
+      if (typeof input.last_name === "string")
+        update.last_name = input.last_name;
       if (typeof input.username === "string") update.username = input.username;
 
       if (update.username) {
@@ -44,23 +46,37 @@ export const userRouter = router({
           .where(eq(Users.username, update.username))
           .limit(1);
         if (existing.length > 0 && existing[0].id !== ctx.user.id) {
-          throw new TRPCError({ code: "CONFLICT", message: "Username already taken" });
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Username already taken",
+          });
         }
       }
 
       if (Object.keys(update).length === 0) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No fields to update" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No fields to update",
+        });
       }
 
       // Ensure email isn't lost if missing on the row
-      const existing = await db.select().from(Users).where(eq(Users.id, ctx.user.id)).limit(1);
+      const existing = await db
+        .select()
+        .from(Users)
+        .where(eq(Users.id, ctx.user.id))
+        .limit(1);
       if (!existing[0]?.email && ctx.user.email) {
         update.email = ctx.user.email;
       }
 
       await db.update(Users).set(update).where(eq(Users.id, ctx.user.id));
 
-      const refreshed = await db.select().from(Users).where(eq(Users.id, ctx.user.id)).limit(1);
+      const refreshed = await db
+        .select()
+        .from(Users)
+        .where(eq(Users.id, ctx.user.id))
+        .limit(1);
       const u = refreshed[0];
       if (!u) {
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
@@ -76,5 +92,3 @@ export const userRouter = router({
       };
     }),
 });
-
-
